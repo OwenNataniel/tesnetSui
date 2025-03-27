@@ -74,7 +74,13 @@ pub fn encrypt_batched_deterministic(
             .zip(infos)
             .map(|((public_key, plaintext), info)| {
                 xor(
-                    &kdf(&gid_r.pairing(public_key), &nonce, &gid, info.as_ref()),
+                    &kdf(
+                        &gid_r.pairing(public_key),
+                        &nonce,
+                        &gid,
+                        public_key,
+                        info.as_ref(),
+                    ),
                     plaintext,
                 )
             })
@@ -88,13 +94,14 @@ pub fn decrypt(
     nonce: &Nonce,
     ciphertext: &Ciphertext,
     secret_key: &UserSecretKey,
+    public_key: &PublicKey,
     id: &[u8],
     info: &[u8],
 ) -> Plaintext {
     let gid = G1Element::hash_to_group_element(id);
     xor(
         ciphertext,
-        &kdf(&secret_key.pairing(nonce), nonce, &gid, info),
+        &kdf(&secret_key.pairing(nonce), nonce, &gid, public_key, info),
     )
 }
 
@@ -120,15 +127,22 @@ pub fn decrypt_deterministic(
     let nonce = G2Element::generator() * randomness;
     Ok(xor(
         ciphertext,
-        &kdf(&gid_r.pairing(public_key), &nonce, &gid, info),
+        &kdf(&gid_r.pairing(public_key), &nonce, &gid, public_key, info),
     ))
 }
 
 /// Derive a random key from public inputs and a info string.
-fn kdf(input: &GTElement, nonce: &G2Element, gid: &G1Element, info: &[u8]) -> [u8; KEY_SIZE] {
+fn kdf(
+    input: &GTElement,
+    nonce: &G2Element,
+    gid: &G1Element,
+    public_key: &G2Element,
+    info: &[u8],
+) -> [u8; KEY_SIZE] {
     let mut bytes = input.to_byte_array().to_vec(); // 576 bytes
     bytes.extend_from_slice(&nonce.to_byte_array()); // 96 bytes
     bytes.extend_from_slice(&gid.to_byte_array()); // 48 bytes
+    bytes.extend_from_slice(&public_key.to_byte_array()); // 96 bytes
 
     hkdf_sha3_256(
         &HkdfIkm::from_bytes(&bytes).expect("not fixed length"),
@@ -180,9 +194,10 @@ mod tests {
         let x = GTElement::generator() * r;
         let nonce = G2Element::generator() * r;
         let gid = G1Element::hash_to_group_element(&[0]);
-        let derived_key = kdf(&x, &nonce, &gid, &[]);
+        let public_key = G2Element::generator() * r;
+        let derived_key = kdf(&x, &nonce, &gid, &public_key, &[]);
         let expected =
-            hex::decode("57d43441a0b561088d4162a1b38ea8a2d443dd2c50ec4aca0610a1a79c057f74")
+            hex::decode("b037a9c0a1f7f6abeaad0f5da4d84c194c51536666ca3a7ea84ece820e180a1d")
                 .unwrap();
         assert_eq!(expected, derived_key);
     }

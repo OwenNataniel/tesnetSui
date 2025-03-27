@@ -145,6 +145,9 @@ enum Command {
         /// The secret keys for the key servers. The order of the keys must match the order of the key servers in the object_ids field.
         #[arg(value_parser = parse_serializable::<G1Element, DefaultEncoding>, num_args = 1..)]
         secret_keys: Vec<G1Element>,
+        /// The public keys for the key servers. The order of the keys must match the order of the key servers in the object_ids field.
+        #[arg(value_parser = parse_serializable::<G2Element, DefaultEncoding>, num_args = 1..)]
+        public_keys: Vec<G2Element>,
         /// The address for the Move objects representing the key servers used for this decryption.
         #[arg(num_args = 1.., last = true)]
         object_ids: Vec<ObjectID>,
@@ -257,13 +260,14 @@ fn main() -> FastCryptoResult<()> {
         Command::Decrypt {
             encrypted_object,
             secret_keys,
+            public_keys,
             object_ids,
         } => DecryptionOutput(seal_decrypt(
             &encrypted_object, // TODO
             &IBEUserSecretKeys::BonehFranklinBLS12381(
                 object_ids.into_iter().zip(secret_keys).collect(),
             ),
-            None,
+            &IBEPublicKeys::BonehFranklinBLS12381(public_keys),
         )?)
         .to_string(),
         Command::Parse { encrypted_object } => ParseOutput(encrypted_object).to_string(),
