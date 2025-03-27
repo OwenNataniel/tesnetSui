@@ -187,7 +187,7 @@ export function WalrusUpload({ recipientAllowlist, cap_id, moduleName }: WalrusU
             handleSubmit();
           }} disabled={file === null}
         >
-          First step: Encrypt and upload to walrus 
+          First step: Encrypt and upload to Walrus 
         </Button>
         {isUploading && (
           <div role="status">
