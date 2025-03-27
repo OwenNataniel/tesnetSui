@@ -10,7 +10,7 @@ import { SuiClient } from "@mysten/sui/client";
 import { getAllowlistedKeyServers, SealClient, SessionKey } from "@mysten/seal";
 import { useParams } from "react-router-dom";
 
-const TTL_MIN = 1;
+const TTL_MIN = 10;
 export interface FeedData {
   allowlistId: string;
   allowlistName: string;
