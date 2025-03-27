@@ -61,7 +61,7 @@ function App() {
         </Box>
       </Flex>
       <Card style={{ marginBottom: "2rem" }}>
-        <p>1. Code is available at <a href="https://github.com/MystenLabs/seal/examples">https://github.com/MystenLabs/seal/examples</a>.</p>
+        <p>1. Code is available <a href="https://github.com/MystenLabs/seal/tree/main/examples">here</a>.</p>
         <p>2. These examples are for Testnet only. Make sure you wallet is set to Testnet and has some balance (can request from <a href="https://faucet.sui.io/">faucet.sui.io</a>).</p>
         <p>3. Blobs are only stored on Walrus Testnet for 1 epoch by default, older files cannot be retrieved even if you have access.</p>
         <p>4. The UI is minimal, designed for demo purposes only!</p>
