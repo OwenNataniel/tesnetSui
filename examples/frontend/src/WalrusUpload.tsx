@@ -253,9 +253,7 @@ export function WalrusUpload({ recipientAllowlist, cap_id, moduleName }: WalrusU
           <div id="uploaded-blobs" role="region" aria-label="Upload details">
             <dl>
               <dt>Status:</dt>
-              <dd>{info.status}</dd>
-              <dt>Stored until epoch:</dt>
-              <dd>{info.endEpoch}</dd>
+              <dd>{info.status}</dd>              
               <dd>
                 <a 
                   href={info.blobUrl} 
