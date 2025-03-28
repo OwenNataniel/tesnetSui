@@ -7,17 +7,19 @@ public(package) fun kdf(
     nonce: &Element<G2>,
     gid: &Element<G1>,
     object_id: address,
-    info: &vector<u8>,
+    index: u8,
 ): vector<u8> {
     let mut bytes = *input.bytes();
     bytes.append(*nonce.bytes());
     bytes.append(*gid.bytes());
-    bytes.append(object_id.to_bytes());
+
+    let mut info = object_id.to_bytes();
+    info.push_back(index);
 
     hkdf_sha3_256(
         &bytes,
         &x"0000000000000000000000000000000000000000000000000000000000000000",
-        info,
+        &info,
     )
 }
 
@@ -36,7 +38,7 @@ fun test_kdf() {
     let x = gt_mul(&r, &gt_generator());
     let nonce = g2_mul(&r, &g2_generator());
     let gid = hash_to_g1(&vector[0]);
-    let derived_key = kdf(&x, &nonce, &gid, @0x0, &vector[42]);
-    let expected = x"71a8b3d86252de91f4aab16b641fc5f11fc7999e3d2b5c4814985a30e99ab9f9";
+    let derived_key = kdf(&x, &nonce, &gid, @0x0, 42);
+    let expected = x"1963b93f076d0dc97cbb38c3864b2d6baeb87c7eb99139100fd775b0b09f668b";
     assert!(derived_key == expected);
 }

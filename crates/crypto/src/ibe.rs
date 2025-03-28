@@ -24,7 +24,7 @@ pub type Plaintext = [u8; KEY_SIZE];
 pub type Ciphertext = [u8; KEY_SIZE];
 pub type Randomness = Scalar;
 
-// Info field for hash. Contains the object id for the key server and the share index.
+// Additional info for the key derivation. Contains the object id for the key server and the share index.
 pub type Info = (ObjectID, u8);
 
 /// Generate a key pair consisting of a master key and a public key.
@@ -131,26 +131,28 @@ pub fn decrypt_deterministic(
     let nonce = G2Element::generator() * randomness;
     Ok(xor(
         ciphertext,
-        &kdf(&gid_r.pairing(public_key), &nonce, &gid, &info),
+        &kdf(&gid_r.pairing(public_key), &nonce, &gid, info),
     ))
 }
 
-/// Derive a random key from public inputs and a info string.
+/// Derive a random key from public inputs.
 fn kdf(
     input: &GTElement,
     nonce: &G2Element,
     gid: &G1Element,
-    (object_id, index): &Info,
+    (object_id, index): &(ObjectID, u8),
 ) -> [u8; KEY_SIZE] {
     let mut bytes = input.to_byte_array().to_vec(); // 576 bytes
     bytes.extend_from_slice(&nonce.to_byte_array()); // 96 bytes
     bytes.extend_from_slice(&gid.to_byte_array()); // 48 bytes
-    bytes.extend_from_slice(&object_id.to_vec()); // 32 bytes
+
+    let mut info = object_id.to_vec();
+    info.extend_from_slice(&[*index]);
 
     hkdf_sha3_256(
         &HkdfIkm::from_bytes(&bytes).expect("not fixed length"),
         &[], // no salt
-        &[*index],
+        &info,
         KEY_SIZE,
     )
     .expect("kdf should not fail")
@@ -201,7 +203,7 @@ mod tests {
 
         let derived_key = kdf(&x, &nonce, &gid, &(object_id, 42));
         let expected =
-            hex::decode("71a8b3d86252de91f4aab16b641fc5f11fc7999e3d2b5c4814985a30e99ab9f9")
+            hex::decode("1963b93f076d0dc97cbb38c3864b2d6baeb87c7eb99139100fd775b0b09f668b")
                 .unwrap();
         assert_eq!(expected, derived_key);
     }
