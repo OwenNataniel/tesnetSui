@@ -95,12 +95,18 @@ export function WalrusUpload({ recipientAllowlist, cap_id, moduleName }: WalrusU
   });
 
   const handleFileChange = (event: any) => {
+    const file = event.target.files[0];
     // Max 10 MiB size
-    if (event.target.files[0].size > 10 * 1024 * 1024) {
+    if (file.size > 10 * 1024 * 1024) {
       alert("File size must be less than 10 MiB");
       return;
     }
-    setFile(event.target.files[0]);
+    // Check if file is an image
+    if (!file.type.startsWith('image/')) {
+      alert("Only image files are allowed");
+      return;
+    }
+    setFile(file);
     setInfo(null);
   };
 
@@ -225,9 +231,10 @@ export function WalrusUpload({ recipientAllowlist, cap_id, moduleName }: WalrusU
         <input 
           type="file" 
           onChange={handleFileChange}
-          aria-label="Choose file to upload"
+          accept="image/*"
+          aria-label="Choose image file to upload"
         />
-        <p>File size must be less than 10 MiB</p>
+        <p>File size must be less than 10 MiB. Only image files are allowed.</p>
         <Button
           onClick={() => {
             handleSubmit();
