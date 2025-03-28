@@ -553,9 +553,9 @@ mod tests {
         let inner_id = [1, 2, 3, 4];
 
         let master_keys = [
-            "LabXNEuHRj8q0Zs2K/zZ1uKGLxU49yNWMkZ7nH6qs5o=",
-            "B0dcGoRo16zDecMjRIXmhvUz8upetnN7ro28sdu6mjw=",
-            "N9d6H24erQHDFTRJrF+PyNt1MEPHXwxwS/p35BkgHh0=",
+            "KPUXJQxoijA276hI6XhNVgIewyaija8UABeFTwEeD6k=",
+            "AwuqCSqP/vHF+/roqrhjzKj070ouLFGWkYr9msDv9eQ=",
+            "JyScQKCG091JJvmedlGFO+lBmsZKynKe3h8jbUlCA7o=",
         ]
         .iter()
         .map(|key| {
@@ -567,7 +567,7 @@ mod tests {
             .map(ibe::public_key_from_master_key)
             .collect_vec();
 
-        let encryption = Base64::decode("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAECAwQDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAFtAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAIpAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAOUAgCNunXOscCObhBWWvYBnWtkOL7L8bQT37A9zf5mCsde1bFZLfl4pkvOQtfTmO15Da8OaDPwuYT38Yh92Qc5tyHOnNGTFzzX4dlfsAMbLLsLQSEnldHdekxYIfovbvErtx4Dj98TCnfpOxvrIHQ9ofLrV4HEE8gBBuVzMijpQgUMJaeTjRt7wJhugjszCT+csp6lBBM+Vy4Z0Hwtl22uL7vCwN02rFUQdqatcHQjG8Ff6zMU1uFhw05oQXzQOXUSa6lCnuR50I9qSsYoysARKGL8cdnto6lF9gb8EsusC0bDU9gAJzTOz9G+4cvrUyVBXb4T6MW9QX/xnKxF+WOAM5T2BasXBqxJcBnvOAEEAQIDBA==").unwrap();
+        let encryption = Base64::decode("AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAECAwQDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAE4AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAALKAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAM3AgCEgtXcUe2iGMS8zEMEB9YVJo4WbdUuW7uqNBLEJc+xA0pnC6TNep2SGpudVO3gXtAG7W4lSNmc/xMhFv9WDfaTZfppIk7H6IXEmM8aUfjk6TyXtMO2D5T0PzB3HhTNIo4De81Z5tb7mnshJWTjJtHBoeWWUpoSunAGQQAWsGFQ5NK9AnAugziSj/SnS5I042nRGswaeMmTBG5+FyLP1FJPSadWZGTQSZzQGcRVVefDJw5gUxUVMhT+CfesAVHHZKkanKv0UhCEy3EnKc6Bkrl09fSLqo7hTKwqNxCJf9oaHhkAJ81y6phEffQ8F4xsbi87mpR05qGNtzvbyh/Y4PLhhL8yQyy4gxhPHwEEAQIDBA==").unwrap();
         let encryption: EncryptedObject = bcs::from_bytes(&encryption).unwrap();
 
         let object_ids = [
