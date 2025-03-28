@@ -192,12 +192,12 @@ pub fn seal_encrypt(
 ///
 /// @param encrypted_object The encrypted object. See `seal_encrypt`.
 /// @param user_secret_keys The user secret keys. It's assumed that these are validated. Otherwise, the decryption will fail or, eg. in the case of using `Plain` mode, the derived key will be wrong.
-/// @param public_keys The public keys of the key servers.
+/// @param public_keys The public keys of the key servers. If provided, all shares will be decrypted and checked for consistency.
 /// @return The decrypted plaintext or, if `Plain` mode was used, the derived key.
 pub fn seal_decrypt(
     encrypted_object: &EncryptedObject,
     user_secret_keys: &IBEUserSecretKeys,
-    public_keys: &IBEPublicKeys,
+    public_keys: Option<&IBEPublicKeys>,
 ) -> FastCryptoResult<Vec<u8>> {
     let EncryptedObject {
         version,
@@ -264,30 +264,32 @@ pub fn seal_decrypt(
     // Create the base key from the shares and decrypt
     let base_key = combine(&shares)?;
 
-    // After we have the encryption key, we decrypt all shares and check for consistency
-    let all_shares = encrypted_shares.decrypt_all_shares(
-        &full_id,
-        &shares.iter().map(|(i, _)| *i).collect_vec(),
-        &encrypted_object
-            .services
-            .iter()
-            .map(|(object_id, _)| *object_id)
-            .collect_vec(),
-        public_keys,
-        &derive_key(KeyPurpose::EncryptedRandomness, &base_key),
-    )?;
+    if let Some(public_keys) = public_keys {
+        // After we have the encryption key, we decrypt all shares and check for consistency
+        let all_shares = encrypted_shares.decrypt_all_shares(
+            &full_id,
+            &shares.iter().map(|(i, _)| *i).collect_vec(),
+            &encrypted_object
+                .services
+                .iter()
+                .map(|(object_id, _)| *object_id)
+                .collect_vec(),
+            public_keys,
+            &derive_key(KeyPurpose::EncryptedRandomness, &base_key),
+        )?;
 
-    let reconstructed_base_key = combine(
-        &services
-            .iter()
-            .zip(all_shares)
-            .map(|((_, i), share)| (*i, share))
-            .collect_vec(),
-    )?;
-    if reconstructed_base_key != base_key {
-        return Err(GeneralError("Invalid secret sharing given".to_string()));
+        let reconstructed_base_key = combine(
+            &services
+                .iter()
+                .zip(all_shares)
+                .map(|((_, i), share)| (*i, share))
+                .collect_vec(),
+        )?;
+        if reconstructed_base_key != base_key {
+            return Err(GeneralError("Invalid secret sharing given".to_string()));
+        }
+        // TODO: The above is just a sanity check. We need to check that the interpolated polynomial from the given shares has the remaining shares as points. The current check just checks that the constant term is the same. But that doesn't rule out that another subset of the shares would've given a different secret.
     }
-    // TODO: The above is just a sanity check. We need to check that the interpolated polynomial from the given shares has the remaining shares as points. The current check just checks that the constant term is the same. But that doesn't rule out that another subset of the shares would've given a different secret.
 
     let dem_key = derive_key(KeyPurpose::DEM, &base_key);
     match ciphertext {
@@ -427,7 +429,7 @@ mod tests {
                 .map(|(s, kp)| (s, ibe::extract(&kp.0, &full_id)))
                 .collect(),
         );
-        let decrypted = seal_decrypt(&encrypted, &user_secret_keys, &public_keys).unwrap();
+        let decrypted = seal_decrypt(&encrypted, &user_secret_keys, Some(&public_keys)).unwrap();
 
         assert_eq!(data, decrypted.as_slice());
 
@@ -440,7 +442,8 @@ mod tests {
                     Some(ref mut aad) => aad.push(0),
                 }
                 assert!(
-                    seal_decrypt(&modified_encrypted, &user_secret_keys, &public_keys).is_err()
+                    seal_decrypt(&modified_encrypted, &user_secret_keys, Some(&public_keys))
+                        .is_err()
                 );
             }
             _ => panic!(),
@@ -487,7 +490,7 @@ mod tests {
                 .map(|(s, kp)| (s, ibe::extract(&kp.0, &full_id)))
                 .collect(),
         );
-        let decrypted = seal_decrypt(&encrypted, &user_secret_keys, &public_keys).unwrap();
+        let decrypted = seal_decrypt(&encrypted, &user_secret_keys, Some(&public_keys)).unwrap();
 
         assert_eq!(data, decrypted.as_slice());
 
@@ -500,7 +503,8 @@ mod tests {
                     Some(ref mut aad) => aad.push(0),
                 }
                 assert!(
-                    seal_decrypt(&modified_encrypted, &user_secret_keys, &public_keys).is_err()
+                    seal_decrypt(&modified_encrypted, &user_secret_keys, Some(&public_keys))
+                        .is_err()
                 );
             }
             _ => panic!(),
@@ -545,7 +549,7 @@ mod tests {
             seal_decrypt(
                 &encrypted,
                 &IBEUserSecretKeys::BonehFranklinBLS12381(user_secret_keys),
-                &public_keys,
+                Some(&public_keys),
             )
             .unwrap()
         );
@@ -593,7 +597,7 @@ mod tests {
         let decrypted = seal_decrypt(
             &encryption,
             &IBEUserSecretKeys::BonehFranklinBLS12381(user_secret_keys),
-            &IBEPublicKeys::BonehFranklinBLS12381(public_keys),
+            Some(&IBEPublicKeys::BonehFranklinBLS12381(public_keys)),
         )
         .unwrap();
 
