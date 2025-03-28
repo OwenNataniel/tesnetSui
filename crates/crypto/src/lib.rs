@@ -264,16 +264,11 @@ pub fn seal_decrypt(
     // Create the base key from the shares and decrypt
     let base_key = combine(&shares)?;
 
+    // If desired, after we have the encryption key, we can decrypt all shares and check for consistency
     if let Some(public_keys) = public_keys {
-        // After we have the encryption key, we decrypt all shares and check for consistency
         let all_shares = encrypted_shares.decrypt_all_shares(
             &full_id,
-            &shares.iter().map(|(i, _)| *i).collect_vec(),
-            &encrypted_object
-                .services
-                .iter()
-                .map(|(object_id, _)| *object_id)
-                .collect_vec(),
+            services,
             public_keys,
             &derive_key(KeyPurpose::EncryptedRandomness, &base_key),
         )?;
@@ -336,8 +331,7 @@ impl IBEEncryptions {
     fn decrypt_all_shares(
         &self,
         id: &[u8],
-        indices: &[u8],
-        object_ids: &[ObjectID],
+        services: &[(ObjectID, u8)],
         public_keys: &IBEPublicKeys,
         key: &[u8; KEY_SIZE],
     ) -> FastCryptoResult<Vec<[u8; KEY_SIZE]>> {
@@ -355,11 +349,8 @@ impl IBEEncryptions {
                     IBEPublicKeys::BonehFranklinBLS12381(public_keys) => public_keys
                         .iter()
                         .zip(encrypted_shares)
-                        .zip(indices)
-                        .zip(object_ids)
-                        .map(|(((pk, s), i), object_id)| {
-                            decrypt_deterministic(&nonce, s, pk, id, &(*object_id, *i))
-                        })
+                        .zip(services)
+                        .map(|((pk, s), service)| decrypt_deterministic(&nonce, s, pk, id, service))
                         .collect::<FastCryptoResult<Vec<_>>>(),
                 }
             }
