@@ -53,8 +53,17 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
   });
   
   useEffect(() => {
+    // Call getFeed immediately
     getFeed();
-  }, [getFeed]);
+
+    // Set up interval to call getFeed every 3 seconds
+    const intervalId = setInterval(() => {
+      getFeed();
+    }, 3000);
+
+    // Cleanup interval on component unmount
+    return () => clearInterval(intervalId);
+  }, [id, suiAddress, packageId, suiClient]);
 
   async function getFeed() {
     // get all encrypted objects for the given service id
