@@ -217,7 +217,7 @@ pub fn seal_decrypt(
     let full_id = create_full_id(package_id, id);
 
     // Decap IBE keys and decrypt shares
-    let shares = match (&encrypted_shares, user_secret_keys, public_keys) {
+    let shares = match (&encrypted_shares, user_secret_keys) {
         (
             IBEEncryptions::BonehFranklinBLS12381 {
                 nonce,
@@ -225,11 +225,10 @@ pub fn seal_decrypt(
                 ..
             },
             IBEUserSecretKeys::BonehFranklinBLS12381(user_secret_keys),
-            IBEPublicKeys::BonehFranklinBLS12381(public_keys),
         ) => {
             // Check that the encrypted object is valid,
             // e.g., that there is an encrypted share of the key and a public key per service
-            if encrypted_shares.len() != services.len() || services.len() != public_keys.len() {
+            if encrypted_shares.len() != services.len() {
                 return Err(InvalidInput);
             }
 
@@ -269,7 +268,11 @@ pub fn seal_decrypt(
     let all_shares = encrypted_shares.decrypt_all_shares(
         &full_id,
         &shares.iter().map(|(i, _)| *i).collect_vec(),
-        &encrypted_object.services.iter().map(|(object_id, _)| *object_id).collect_vec(),
+        &encrypted_object
+            .services
+            .iter()
+            .map(|(object_id, _)| *object_id)
+            .collect_vec(),
         public_keys,
         &derive_key(KeyPurpose::EncryptedRandomness, &base_key),
     )?;
@@ -352,7 +355,9 @@ impl IBEEncryptions {
                         .zip(encrypted_shares)
                         .zip(indices)
                         .zip(object_ids)
-                        .map(|(((pk, s), i), object_id)| decrypt_deterministic(&nonce, s, pk, id, &(*object_id, *i)))
+                        .map(|(((pk, s), i), object_id)| {
+                            decrypt_deterministic(&nonce, s, pk, id, &(*object_id, *i))
+                        })
                         .collect::<FastCryptoResult<Vec<_>>>(),
                 }
             }
