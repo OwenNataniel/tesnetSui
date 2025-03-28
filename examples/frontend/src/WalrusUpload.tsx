@@ -25,17 +25,18 @@ interface WalrusUploadProps {
   moduleName: string;
 }
 
-type Publisher = {
+type WalrusService = {
   id: string;
   name: string;
-  url: string;
+  publisherUrl: string;
+  aggregatorUrl: string;
 };
 
 export function WalrusUpload({ recipientAllowlist, cap_id, moduleName }: WalrusUploadProps) {
   const [file, setFile] = useState<File | null>(null);
   const [info, setInfo] = useState<Data | null>(null);
   const [isUploading, setIsUploading] = useState<boolean>(false);
-  const [selectedPublisher, setSelectedPublisher] = useState<string>("publisher1");
+  const [selectedService, setSelectedService] = useState<string>("service1");
 
   const SUI_VIEW_TX_URL = `https://suiscan.xyz/testnet/tx`;
   const SUI_VIEW_OBJECT_URL = `https://suiscan.xyz/testnet/object`;
@@ -48,21 +49,37 @@ export function WalrusUpload({ recipientAllowlist, cap_id, moduleName }: WalrusU
     serverObjectIds: getAllowlistedKeyServers("testnet"),
   });
 
-  const publishers: Publisher[] = [
-    { id: "publisher1", name: "walrus.space", url: "/publisher1" },
-    { id: "publisher2", name: "staketab.org", url: "/publisher2" },
-    { id: "publisher3", name: "redundex.com", url: "/publisher3" }
+  const services: WalrusService[] = [
+    { 
+      id: "service1", 
+      name: "walrus.space", 
+      publisherUrl: "/publisher1",
+      aggregatorUrl: "/aggregator1"
+    },
+    { 
+      id: "service2", 
+      name: "staketab.org", 
+      publisherUrl: "/publisher2",
+      aggregatorUrl: "/aggregator2"
+    },
+    { 
+      id: "service3", 
+      name: "redundex.com", 
+      publisherUrl: "/publisher3",
+      aggregatorUrl: "/aggregator3"
+    }
   ];
 
   function getAggregatorUrl(path: string): string {
+    const service = services.find(s => s.id === selectedService);
     const cleanPath = path.replace(/^\/+/, '').replace(/^v1\//, '');
-    return `/aggregator/v1/${cleanPath}`;
+    return `${service?.aggregatorUrl}/v1/${cleanPath}`;
   }
   
   function getPublisherUrl(path: string): string {
-    const publisher = publishers.find(p => p.id === selectedPublisher);
+    const service = services.find(s => s.id === selectedService);
     const cleanPath = path.replace(/^\/+/, '').replace(/^v1\//, '');
-    return `${publisher?.url}/v1/${cleanPath}`;
+    return `${service?.publisherUrl}/v1/${cleanPath}`;
   }
 
   const { mutate: signAndExecute } = useSignAndExecuteTransaction({
@@ -191,17 +208,20 @@ export function WalrusUpload({ recipientAllowlist, cap_id, moduleName }: WalrusU
   return (
     <Card>
       <Flex direction="column" gap="2" align="start">
-        <select 
-          value={selectedPublisher}
-          onChange={(e) => setSelectedPublisher(e.target.value)}
-          aria-label="Select Walrus publisher"
-        >
-          {publishers.map(pub => (
-            <option key={pub.id} value={pub.id}>
-              {pub.name}
-            </option>
-          ))}
-        </select>
+        <Flex gap="2" align="center">
+          <Text>Select Walrus service:</Text>
+          <select
+            value={selectedService}
+            onChange={(e) => setSelectedService(e.target.value)}
+            aria-label="Select Walrus service"
+          >
+            {services.map(service => (
+              <option key={service.id} value={service.id}>
+                {service.name}
+              </option>
+            ))}
+          </select>
+        </Flex>
         <input 
           type="file" 
           onChange={handleFileChange}
