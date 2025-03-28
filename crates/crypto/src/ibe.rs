@@ -64,9 +64,8 @@ pub fn encrypt_batched_deterministic(
     randomness: &Randomness,
     plaintexts: &[Plaintext],
     public_keys: &[PublicKey],
-    object_ids: &[ObjectID],
     id: &[u8],
-    indices: &[u8],
+    infos: &[Info],
 ) -> FastCryptoResult<(Nonce, Vec<Ciphertext>)> {
     let gid = G1Element::hash_to_group_element(id);
     let gid_r = gid * randomness;
@@ -76,16 +75,10 @@ pub fn encrypt_batched_deterministic(
         public_keys
             .iter()
             .zip(plaintexts)
-            .zip(indices)
-            .zip(object_ids)
-            .map(|(((public_key, plaintext), index), object_id)| {
+            .zip(infos)
+            .map(|((public_key, plaintext), info)| {
                 xor(
-                    &kdf(
-                        &gid_r.pairing(public_key),
-                        &nonce,
-                        &gid,
-                        &(*object_id, *index),
-                    ),
+                    &kdf(&gid_r.pairing(public_key), &nonce, &gid, info),
                     plaintext,
                 )
             })
@@ -140,7 +133,7 @@ fn kdf(
     input: &GTElement,
     nonce: &G2Element,
     gid: &G1Element,
-    (object_id, index): &(ObjectID, u8),
+    (object_id, index): &Info,
 ) -> [u8; KEY_SIZE] {
     let mut bytes = input.to_byte_array().to_vec(); // 576 bytes
     bytes.extend_from_slice(&nonce.to_byte_array()); // 96 bytes

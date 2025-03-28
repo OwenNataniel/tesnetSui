@@ -140,9 +140,11 @@ pub fn seal_encrypt(
         indices, shares, ..
     } = split(&mut rng, base_key, threshold, number_of_shares)?;
 
+    let services = key_servers.into_iter().zip(indices).collect::<Vec<_>>();
+
     let encrypted_shares = match public_keys {
         IBEPublicKeys::BonehFranklinBLS12381(public_keys) => {
-            if public_keys.len() != key_servers.len() {
+            if public_keys.len() != number_of_shares as usize {
                 return Err(InvalidInput);
             }
             let randomness = ibe::Randomness::rand(&mut rng);
@@ -153,9 +155,8 @@ pub fn seal_encrypt(
                 &randomness,
                 &shares,
                 public_keys,
-                &key_servers,
                 &full_id,
-                &indices,
+                &services,
             )?;
 
             let encrypted_randomness = ibe::encrypt_randomness(
@@ -175,7 +176,7 @@ pub fn seal_encrypt(
             version: 0,
             package_id,
             id,
-            services: key_servers.into_iter().zip(indices).collect(),
+            services,
             threshold,
             encrypted_shares,
             ciphertext,
