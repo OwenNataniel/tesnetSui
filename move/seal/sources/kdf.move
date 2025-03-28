@@ -13,7 +13,6 @@ public(package) fun kdf(
     bytes.append(*nonce.bytes());
     bytes.append(*gid.bytes());
     bytes.append(object_id.to_bytes());
-    std::debug::print(&object_id.to_bytes());
 
     hkdf_sha3_256(
         &bytes,
