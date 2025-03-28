@@ -284,7 +284,7 @@ export function WalrusUpload({ recipientAllowlist, cap_id, moduleName }: WalrusU
           disabled={!info || !file || recipientAllowlist === ""}
           aria-label="Encrypt and upload file"
         >
-          Second step: Associate file to allowlist
+          Second step: Associate file to Sui object
         </Button>
       </Flex>
     </Card>
