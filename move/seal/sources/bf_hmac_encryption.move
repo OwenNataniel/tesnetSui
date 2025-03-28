@@ -104,7 +104,7 @@ public fun decrypt(
             &pairing(&vdk.derived_key, nonce),
             nonce,
             &hash_to_g1(&full_id),
-            &public_keys[*i].pk,
+            services[*i],
             &vector[indices[*i] as u8],
         );
         encrypted_shares[*i].zip_map!(symmetric_key, |a, b| a ^ b)
@@ -128,6 +128,7 @@ public fun decrypt(
         &randomness,
         encrypted_shares,
         &public_keys.map_ref!(|pk| pk.pk),
+        services,
         &full_id,
         indices,
         &given_indices,
@@ -186,6 +187,7 @@ fun decrypt_shares_with_randomness(
     randomness: &Element<Scalar>,
     encrypted_shares: &vector<vector<u8>>,
     public_keys: &vector<Element<G2>>,
+    object_ids: &vector<address>,
     full_id: &vector<u8>,
     indices: &vector<u8>,
     indices_to_omit: &vector<u64>,
@@ -193,6 +195,7 @@ fun decrypt_shares_with_randomness(
     let n = indices.length();
     assert!(n == encrypted_shares.length());
     assert!(n == public_keys.length());
+    assert!(n == object_ids.length());
 
     let gid = hash_to_g1(full_id);
     let gid_r = g1_mul(randomness, &hash_to_g1(full_id));
@@ -209,7 +212,7 @@ fun decrypt_shares_with_randomness(
                         &pairing(&gid_r, &public_keys[i]),
                         &nonce,
                         &gid,
-                        &public_keys[i],
+                        object_ids[i],
                         &vector[indices[i]],
                     ),
                 ),

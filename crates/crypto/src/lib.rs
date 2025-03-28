@@ -153,8 +153,9 @@ pub fn seal_encrypt(
                 &randomness,
                 &shares,
                 public_keys,
+                &key_servers,
                 &full_id,
-                &indices.iter().map(|i| [*i]).collect_vec(),
+                &indices,
             )?;
 
             let encrypted_randomness = ibe::encrypt_randomness(
@@ -253,9 +254,8 @@ pub fn seal_decrypt(
                         user_secret_keys
                             .get(&services[i].0)
                             .expect("This shouldn't happen: It's checked above that this secret key is available"),
-                        &public_keys[i],
                         &full_id,
-                        &[index],
+                        &(services[i].0, index),
                     ))
                 })
                 .collect_vec()
@@ -269,6 +269,7 @@ pub fn seal_decrypt(
     let all_shares = encrypted_shares.decrypt_all_shares(
         &full_id,
         &shares.iter().map(|(i, _)| *i).collect_vec(),
+        &encrypted_object.services.iter().map(|(object_id, _)| *object_id).collect_vec(),
         public_keys,
         &derive_key(KeyPurpose::EncryptedRandomness, &base_key),
     )?;
@@ -331,6 +332,7 @@ impl IBEEncryptions {
         &self,
         id: &[u8],
         indices: &[u8],
+        object_ids: &[ObjectID],
         public_keys: &IBEPublicKeys,
         key: &[u8; KEY_SIZE],
     ) -> FastCryptoResult<Vec<[u8; KEY_SIZE]>> {
@@ -349,7 +351,8 @@ impl IBEEncryptions {
                         .iter()
                         .zip(encrypted_shares)
                         .zip(indices)
-                        .map(|((pk, s), i)| decrypt_deterministic(&nonce, s, pk, id, &[*i]))
+                        .zip(object_ids)
+                        .map(|(((pk, s), i), object_id)| decrypt_deterministic(&nonce, s, pk, id, &(*object_id, *i)))
                         .collect::<FastCryptoResult<Vec<_>>>(),
                 }
             }

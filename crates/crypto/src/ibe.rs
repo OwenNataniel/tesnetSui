@@ -14,6 +14,7 @@ use fastcrypto::hmac::{hkdf_sha3_256, HkdfIkm};
 use fastcrypto::serde_helpers::ToFromByteArray;
 use fastcrypto::traits::AllowedRng;
 use fastcrypto::traits::ToFromBytes;
+use sui_types::base_types::ObjectID;
 
 pub type MasterKey = Scalar;
 pub type PublicKey = G2Element;
@@ -22,6 +23,9 @@ pub type Nonce = G2Element;
 pub type Plaintext = [u8; KEY_SIZE];
 pub type Ciphertext = [u8; KEY_SIZE];
 pub type Randomness = Scalar;
+
+// Info field for hash. Contains the object id for the key server and the share index.
+pub type Info = (ObjectID, u8);
 
 /// Generate a key pair consisting of a master key and a public key.
 pub fn generate_key_pair<R: AllowedRng>(rng: &mut R) -> (MasterKey, PublicKey) {
@@ -60,8 +64,9 @@ pub fn encrypt_batched_deterministic(
     randomness: &Randomness,
     plaintexts: &[Plaintext],
     public_keys: &[PublicKey],
+    object_ids: &[ObjectID],
     id: &[u8],
-    infos: &[impl AsRef<[u8]>],
+    indices: &[u8],
 ) -> FastCryptoResult<(Nonce, Vec<Ciphertext>)> {
     let gid = G1Element::hash_to_group_element(id);
     let gid_r = gid * randomness;
@@ -71,15 +76,15 @@ pub fn encrypt_batched_deterministic(
         public_keys
             .iter()
             .zip(plaintexts)
-            .zip(infos)
-            .map(|((public_key, plaintext), info)| {
+            .zip(indices)
+            .zip(object_ids)
+            .map(|(((public_key, plaintext), index), object_id)| {
                 xor(
                     &kdf(
                         &gid_r.pairing(public_key),
                         &nonce,
                         &gid,
-                        public_key,
-                        info.as_ref(),
+                        &(*object_id, *index),
                     ),
                     plaintext,
                 )
@@ -94,14 +99,13 @@ pub fn decrypt(
     nonce: &Nonce,
     ciphertext: &Ciphertext,
     secret_key: &UserSecretKey,
-    public_key: &PublicKey,
     id: &[u8],
-    info: &[u8],
+    info: &Info,
 ) -> Plaintext {
     let gid = G1Element::hash_to_group_element(id);
     xor(
         ciphertext,
-        &kdf(&secret_key.pairing(nonce), nonce, &gid, public_key, info),
+        &kdf(&secret_key.pairing(nonce), nonce, &gid, info),
     )
 }
 
@@ -120,14 +124,14 @@ pub fn decrypt_deterministic(
     ciphertext: &Ciphertext,
     public_key: &PublicKey,
     id: &[u8],
-    info: &[u8],
+    info: &Info,
 ) -> FastCryptoResult<Plaintext> {
     let gid = G1Element::hash_to_group_element(id);
     let gid_r = gid * randomness;
     let nonce = G2Element::generator() * randomness;
     Ok(xor(
         ciphertext,
-        &kdf(&gid_r.pairing(public_key), &nonce, &gid, public_key, info),
+        &kdf(&gid_r.pairing(public_key), &nonce, &gid, &info),
     ))
 }
 
@@ -136,18 +140,17 @@ fn kdf(
     input: &GTElement,
     nonce: &G2Element,
     gid: &G1Element,
-    public_key: &G2Element,
-    info: &[u8],
+    (object_id, index): &Info,
 ) -> [u8; KEY_SIZE] {
     let mut bytes = input.to_byte_array().to_vec(); // 576 bytes
     bytes.extend_from_slice(&nonce.to_byte_array()); // 96 bytes
     bytes.extend_from_slice(&gid.to_byte_array()); // 48 bytes
-    bytes.extend_from_slice(&public_key.to_byte_array()); // 96 bytes
+    bytes.extend_from_slice(&object_id.to_vec()); // 32 bytes
 
     hkdf_sha3_256(
         &HkdfIkm::from_bytes(&bytes).expect("not fixed length"),
         &[], // no salt
-        info,
+        &[*index],
         KEY_SIZE,
     )
     .expect("kdf should not fail")
@@ -194,10 +197,11 @@ mod tests {
         let x = GTElement::generator() * r;
         let nonce = G2Element::generator() * r;
         let gid = G1Element::hash_to_group_element(&[0]);
-        let public_key = G2Element::generator() * r;
-        let derived_key = kdf(&x, &nonce, &gid, &public_key, &[]);
+        let object_id = ObjectID::new([0; 32]);
+
+        let derived_key = kdf(&x, &nonce, &gid, &(object_id, 42));
         let expected =
-            hex::decode("b037a9c0a1f7f6abeaad0f5da4d84c194c51536666ca3a7ea84ece820e180a1d")
+            hex::decode("71a8b3d86252de91f4aab16b641fc5f11fc7999e3d2b5c4814985a30e99ab9f9")
                 .unwrap();
         assert_eq!(expected, derived_key);
     }
