@@ -227,7 +227,7 @@ pub fn seal_decrypt(
             IBEUserSecretKeys::BonehFranklinBLS12381(user_secret_keys),
         ) => {
             // Check that the encrypted object is valid,
-            // e.g., that there is an encrypted share of the key and a public key per service
+            // e.g., that there is an encrypted share of the key per service
             if encrypted_shares.len() != services.len() {
                 return Err(InvalidInput);
             }
