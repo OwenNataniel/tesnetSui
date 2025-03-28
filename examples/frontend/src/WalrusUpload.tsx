@@ -4,7 +4,7 @@ import React, { useState } from "react";
 import { Transaction } from "@mysten/sui/transactions";
 import { useNetworkVariable } from "./networkConfig";
 import { useSignAndExecuteTransaction, useSuiClient } from "@mysten/dapp-kit";
-import { Button, Card, Flex, Spinner } from "@radix-ui/themes";
+import { Button, Card, Flex, Spinner, Text } from "@radix-ui/themes";
 import { getAllowlistedKeyServers, SealClient } from "@mysten/seal";
 
 export type Data = {
