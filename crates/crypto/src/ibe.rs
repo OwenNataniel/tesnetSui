@@ -67,19 +67,21 @@ pub fn encrypt_batched_deterministic(
     id: &[u8],
     infos: &[Info],
 ) -> FastCryptoResult<(Nonce, Vec<Ciphertext>)> {
+    let batch_size = plaintexts.len();
+    if batch_size != public_keys.len() || batch_size != infos.len() {
+        return Err(InvalidInput);
+    }
+
     let gid = G1Element::hash_to_group_element(id);
     let gid_r = gid * randomness;
     let nonce = G2Element::generator() * randomness;
     Ok((
         nonce,
-        public_keys
-            .iter()
-            .zip(plaintexts)
-            .zip(infos)
-            .map(|((public_key, plaintext), info)| {
+        (0..batch_size)
+            .map(|i| {
                 xor(
-                    &kdf(&gid_r.pairing(public_key), &nonce, &gid, info),
-                    plaintext,
+                    &kdf(&gid_r.pairing(&public_keys[i]), &nonce, &gid, &infos[i]),
+                    &plaintexts[i],
                 )
             })
             .collect(),
