@@ -10,7 +10,7 @@ import { fromHex, SUI_CLOCK_OBJECT_ID, toHex } from "@mysten/sui/utils";
 import {SealClient, SessionKey, getAllowlistedKeyServers } from "@mysten/seal";
 import { useParams } from "react-router-dom";
 
-const TTL_MIN = 1;
+const TTL_MIN = 10;
 export interface FeedData {
   id: string;
   fee: string;
