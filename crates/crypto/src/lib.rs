@@ -255,7 +255,7 @@ pub fn seal_decrypt(
                             .get(&services[i].0)
                             .expect("This shouldn't happen: It's checked above that this secret key is available"),
                         &full_id,
-                        &(services[i].0, index),
+                        &services[i],
                     ))
                 })
                 .collect_vec()
