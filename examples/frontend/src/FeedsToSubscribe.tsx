@@ -267,8 +267,7 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
         {
           onSuccess: async (result) => {
             sessionKey.setPersonalMessageSignature(result.signature);
-            handleDecryption(blobIds, sessionKey, txBytes);
-            setReloadKey(prev => prev + 1);
+            handleDecryption(blobIds, sessionKey, txBytes);            
           },
         },
       );

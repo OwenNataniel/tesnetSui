@@ -130,6 +130,7 @@ const Feeds: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
     setIsDialogOpen(true);
     setReloadKey(prev => prev + 1);
   }
+  
   const onView = async (
     blobIds: string[],
     allowlistId: string,
@@ -143,7 +144,6 @@ const Feeds: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
     );
     if (currentSessionKey && !currentSessionKey.isExpired() && currentSessionKey.getAddress() === suiAddress) {
       handleDecryption(blobIds, currentSessionKey, txBytes);
-      setReloadKey(prev => prev + 1);
       return;
     }
 		const sessionKey = new SessionKey({
@@ -162,7 +162,6 @@ const Feeds: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
           onSuccess: async (result) => {
             sessionKey.setPersonalMessageSignature(result.signature);
             handleDecryption(blobIds, sessionKey, txBytes);
-            setReloadKey(prev => prev + 1);
           },
         },
       );
