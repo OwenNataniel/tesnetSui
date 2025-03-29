@@ -198,10 +198,12 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
           continue;
         }
         if (response.status === 403) {
-          throw new Error("Access forbidden");
+          setError("No access to this encrypted file");
+          return;
         }
         if (!response.ok) {
-          throw new Error("Network response was not ok");
+          setError("Failed to fetch encrypted file");
+          return;
         }
 
       try {
@@ -221,6 +223,7 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
         } else {
           setError('An unknown error occurred');
         }
+        return;
       }
     }
     setDecryptedFileUrls(decryptedFileUrls);
@@ -323,7 +326,7 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
         <AlertDialog.Content maxWidth="450px">
           <AlertDialog.Title>Error</AlertDialog.Title>
           <AlertDialog.Description size="2">
-            No access to this feed.
+            {error}
           </AlertDialog.Description>
 
           <Flex gap="3" mt="4" justify="end">
