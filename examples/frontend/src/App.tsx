@@ -6,15 +6,15 @@ import { ConnectButton, useCurrentAccount } from "@mysten/dapp-kit";
 import { Box, Button, Card, Container, Flex, Grid } from "@radix-ui/themes";
 import { CreateAllowlist } from "./CreateAllowlist";
 import { Allowlist } from "./Allowlist";
-import WalrusUpload from "./WalrusUpload";
+import WalrusUpload from "./EncryptAndUpload";
 import { useState } from "react";
-import { CreateService } from "./CreateService";
-import FeedsToSubscribe from "./FeedsToSubscribe";
-import { Service } from "./Service";
+import { CreateService } from "./CreateSubscriptionService";
+import FeedsToSubscribe from "./SubscriptionView";
+import { Service } from "./SubscriptionService";
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
-import { AllAllowlist } from './AllAllowlist';
-import { AllServices } from './AllServices';
-import Feeds from './Feeds';
+import { AllAllowlist } from './OwnedAllowlists';
+import { AllServices } from './OwnedSubscriptionServices';
+import Feeds from './AllowlistView';
 
 function LandingPage() {
   return (
