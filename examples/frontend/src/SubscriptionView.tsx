@@ -240,7 +240,7 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
         <p>No files found for this service.</p>
       ) : (
       <Card key={feed!.id}>
-        <Heading size="3" style={{ marginBottom: "1rem" }}>Files for subscription service {feed!.name} (ID {getObjectExplorerLink(feed!.id)})</Heading>        
+        <Heading size="2" style={{ marginBottom: "1rem" }}>Files for subscription service {feed!.name} (ID {getObjectExplorerLink(feed!.id)})</Heading>        
         <Flex direction="column" gap="2">
             {feed!.blobIds.length === 0 ? (
               <p>No feeds found.</p>
