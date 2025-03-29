@@ -12,7 +12,7 @@ import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { useParams } from "react-router-dom";
 import { isValidSuiAddress } from "@mysten/sui/utils";
-import { getTransactionLink } from "./utils";
+import { getObjectExplorerLink } from "./utils";
 
 export interface Allowlist {
   id: string;
@@ -152,7 +152,7 @@ export function Allowlist({ setRecipientAllowlist, setCapId }: AllowlistProps) {
   return (
     <Flex direction="column" gap="2" justify="start">
       <Card key={`${allowlist?.id}`}>
-        <h3 style={{ marginBottom: "1rem" }}>Admin View: Allowlist {allowlist?.name} (ID {allowlist?.id && getTransactionLink(allowlist.id)})</h3>
+        <h3 style={{ marginBottom: "1rem" }}>Admin View: Allowlist {allowlist?.name} (ID {allowlist?.id && getObjectExplorerLink(allowlist.id)})</h3>
         <h3 style={{ marginBottom: "1rem" }}>Share&nbsp;
           <a href={`${window.location.origin}/allowlist-example/view/allowlist/${allowlist?.id}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }}>
             this link

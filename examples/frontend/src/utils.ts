@@ -80,7 +80,7 @@ export const handleDecryption = async (
   }
 };
 
-export const getTransactionLink = (id: string): React.ReactElement => {
+export const getObjectExplorerLink = (id: string): React.ReactElement => {
   return React.createElement(
     'a',
     {

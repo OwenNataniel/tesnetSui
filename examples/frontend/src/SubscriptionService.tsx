@@ -8,7 +8,7 @@ import { Card, Flex } from "@radix-ui/themes";
 import { useEffect, useState } from "react";
 import { useParams } from "react-router-dom";
 import { useNetworkVariable } from "./networkConfig";
-import { getTransactionLink } from "./utils";
+import { getObjectExplorerLink } from "./utils";
 
 export interface Service {
   id: string;
@@ -80,7 +80,7 @@ export function Service({ setRecipientAllowlist, setCapId }: AllowlistProps) {
   return (
     <Flex direction="column" gap="2" justify="start">      
       <Card key={`${service?.id}`}>
-      <h3 style={{ marginBottom: "1rem" }}>Admin View: Service {service?.name} (ID {service?.id && getTransactionLink(service.id)})</h3>
+      <h3 style={{ marginBottom: "1rem" }}>Admin View: Service {service?.name} (ID {service?.id && getObjectExplorerLink(service.id)})</h3>
         <h3 style={{ marginBottom: "1rem" }}>Share&nbsp;
           <a href={`${window.location.origin}/subscription-example/view/service/${service?.id}`} target="_blank" rel="noopener noreferrer" style={{ textDecoration: "underline" }} aria-label="Download encrypted blob">
           this link
