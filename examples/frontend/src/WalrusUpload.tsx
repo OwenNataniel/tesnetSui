@@ -47,6 +47,7 @@ export function WalrusUpload({ recipientAllowlist, cap_id, moduleName }: WalrusU
   const client = new SealClient({
     suiClient,
     serverObjectIds: getAllowlistedKeyServers("testnet"),
+    verifyKeyServers: false,
   });
 
   const services: WalrusService[] = [

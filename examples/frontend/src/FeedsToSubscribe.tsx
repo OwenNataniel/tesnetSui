@@ -29,6 +29,7 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
   const client = new SealClient({
     suiClient,
     serverObjectIds: getAllowlistedKeyServers("testnet"),
+    verifyKeyServers: false,
   });
   const [feed, setFeed] = useState<FeedData>();
   const [decryptedFileUrls, setDecryptedFileUrls] = useState<string[]>([]);

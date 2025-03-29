@@ -45,6 +45,7 @@ const Feeds: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
   const client = new SealClient({
     suiClient,
     serverObjectIds: getAllowlistedKeyServers("testnet"),
+    verifyKeyServers: false,
   });
   const packageId = useNetworkVariable("packageId");
 
