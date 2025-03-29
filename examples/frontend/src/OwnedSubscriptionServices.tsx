@@ -76,7 +76,7 @@ export function AllServices() {
     
     return (
       <div>
-        <h3 style={{ marginBottom: "1rem" }}>Admin View: Owned Subscription Services</h3>
+        <h2 style={{ marginBottom: "1rem" }}>Admin View: Owned Subscription Services</h2>
         <p style={{ marginBottom: "2rem" }}>This is all the services that you have created. Click manage to upload new files to the service.</p>
         {cardItems.map((item) => (
           <Card key={`${item.id}`}>

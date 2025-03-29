@@ -89,6 +89,6 @@ export const getObjectExplorerLink = (id: string): React.ReactElement => {
       rel: 'noopener noreferrer',
       style: { textDecoration: 'underline' }
     },
-    id
+    id.slice(0, 10) + '...'
   );
 }; 
