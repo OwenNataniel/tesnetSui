@@ -25,6 +25,7 @@ jobs:
 
   run-integration-tests:
     runs-on: ubuntu-latest
+    needs: deploy-seal-key-server
     steps:
       - name: Dispatch Seal Integration Tests in MystenLabs/ts-sdks
         uses: peter-evans/repository-dispatch@ff45666b9427631e3450c54a1bcbee4d9ff4d7c0 # pin@v3.0.0
