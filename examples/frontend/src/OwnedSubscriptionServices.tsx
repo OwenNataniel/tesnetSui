@@ -5,6 +5,7 @@ import { useCurrentAccount, useSuiClient } from "@mysten/dapp-kit";
 import { useEffect, useState } from "react";
 import { useNetworkVariable } from "./networkConfig";
 import { Button, Card } from "@radix-ui/themes";
+import { getTransactionLink } from "./utils";
 
 export interface Cap {
     id: string;
@@ -79,7 +80,7 @@ export function AllServices() {
         <p style={{ marginBottom: "2rem" }}>This is all the services that you have created. Click manage to upload new files to the service.</p>
         {cardItems.map((item) => (
           <Card key={`${item.id}`}>
-            <p><strong>{item.name}</strong></p>
+            <p><strong>{item.name} (ID {getTransactionLink(item.id)})</strong></p>
             <p>Subscription Fee: {item.fee} MIST</p>
             <p>Subscription Duration: {item.ttl ? parseInt(item.ttl) / 60 / 1000 : 'null'} minutes</p>
             <Button 

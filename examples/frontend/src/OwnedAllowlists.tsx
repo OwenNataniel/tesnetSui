@@ -5,6 +5,7 @@ import { useCurrentAccount, useSuiClient } from "@mysten/dapp-kit";
 import { useCallback, useEffect, useState } from "react";
 import { useNetworkVariable } from "./networkConfig";
 import { Button, Card } from "@radix-ui/themes";
+import { getTransactionLink } from "./utils";
 
 export interface Cap {
     id: string;
@@ -76,7 +77,7 @@ export function AllAllowlist() {
         <p style={{ marginBottom: "2rem" }}>These are all the allowlists that you have created. Click manage to edit the allowlist and upload new files to the allowlist.</p>
         {cardItems.map((item) => (
           <Card key={`${item.cap_id} - ${item.allowlist_id}`}>
-            <p>{item.name} (ID {item.allowlist_id})</p>
+            <p>{item.name} (ID {getTransactionLink(item.allowlist_id)})</p>
             <Button 
                 onClick={() => {
                   window.open(`${window.location.origin}/allowlist-example/admin/allowlist/${item.allowlist_id}`, '_blank');
