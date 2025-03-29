@@ -9,6 +9,7 @@ import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import { fromHex, SUI_CLOCK_OBJECT_ID, toHex } from "@mysten/sui/utils";
 import {SealClient, SessionKey, getAllowlistedKeyServers } from "@mysten/seal";
 import { useParams } from "react-router-dom";
+import { handleDecryption } from "./decryption";
 
 const TTL_MIN = 10;
 export interface FeedData {
@@ -184,53 +185,6 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
     );
   }
 
-  const handleDecryption = async (
-    blobIds: string[],
-    sessionKey: SessionKey,
-    txBytes: Uint8Array,
-  ) => {
-    const decryptedFileUrls = [];
-    for (const blobId of blobIds) {
-        // Fetch the blob from blobId
-        const response = await fetch(blobId);
-        if (response.status === 404) {
-          console.error(`Blob not found on Walrus: ${blobId}`);
-          continue;
-        }
-        if (response.status === 403) {
-          setError("No access to an encrypted file");
-          return;
-        }
-        if (!response.ok) {
-          setError("Failed to fetch an encrypted file");
-          return;
-        }
-
-      try {
-        const decryptedFile = await client.decrypt(
-          {
-            data: new Uint8Array(await response.arrayBuffer()),
-            sessionKey,
-            txBytes,
-          }
-        );
-        const blob = new Blob([decryptedFile], { type: "image/jpg" });
-        const decryptedFileUrl = URL.createObjectURL(blob);
-        decryptedFileUrls.push(decryptedFileUrl);
-      } catch (err) {
-        if (err instanceof Error) {
-          setError(err.message);
-        } else {
-          setError('An unknown error occurred');
-        }
-        return;
-      }
-    }
-    setDecryptedFileUrls(decryptedFileUrls);
-    setIsDialogOpen(true);
-    setReloadKey(prev => prev + 1);
-  }
-
   const onView = async (
     blobIds: string[],
     serviceId: string,
@@ -251,7 +205,7 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
     );
 
     if (currentSessionKey && !currentSessionKey.isExpired() && currentSessionKey.getAddress() === suiAddress) {
-      handleDecryption(blobIds, currentSessionKey, txBytes);
+      handleDecryption(blobIds, currentSessionKey, txBytes, client, setError, setDecryptedFileUrls, setIsDialogOpen, setReloadKey);
       return;
     }
 
@@ -270,7 +224,7 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
         {
           onSuccess: async (result) => {
             sessionKey.setPersonalMessageSignature(result.signature);
-            handleDecryption(blobIds, sessionKey, txBytes);            
+            handleDecryption(blobIds, sessionKey, txBytes, client, setError, setDecryptedFileUrls, setIsDialogOpen, setReloadKey);            
           },
         },
       );
