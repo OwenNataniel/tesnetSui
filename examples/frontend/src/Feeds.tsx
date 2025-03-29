@@ -172,7 +172,7 @@ const Feeds: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
 
   return (
     <Card>
-      <h3>Files for Allowlist {feed?.allowlistName} (ID {feed?.allowlistId})</h3>
+      <h3 style={{ marginBottom: "1rem" }}>Files for Allowlist {feed?.allowlistName} (ID {feed?.allowlistId})</h3>
       {feed === undefined ? (
         <p>No files found for this allowlist.</p>
       ) : (

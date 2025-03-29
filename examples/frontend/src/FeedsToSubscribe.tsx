@@ -198,11 +198,11 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
           continue;
         }
         if (response.status === 403) {
-          setError("No access to this encrypted file");
+          setError("No access to an encrypted file");
           return;
         }
         if (!response.ok) {
-          setError("Failed to fetch encrypted file");
+          setError("Failed to fetch an encrypted file");
           return;
         }
 
@@ -285,40 +285,42 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
         <p>No files found for this service.</p>
       ) : (
       <Card key={feed!.id}>
-        <Heading size="3">Files for subscription service {feed!.name} (ID {feed!.id})</Heading>        
-        <Flex direction="column" align="start" gap="2">
+        <Heading size="3" style={{ marginBottom: "1rem" }}>Files for subscription service {feed!.name} (ID {feed!.id})</Heading>        
+        <Flex direction="column" gap="2">
             {feed!.blobIds.length === 0 ? (
               <p>No feeds found.</p>
             ) : (
               <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-              <Dialog.Trigger>
-                <Button onClick={() => onView(feed!.blobIds, feed!.id, Number(feed!.fee), feed!.subscriptionId)}>
-                  {feed!.subscriptionId ? <div>Download And Decrypt All Files</div> : <div>Subscribe for {feed!.fee} MIST for {Math.floor(parseInt(feed!.ttl) / 60 / 1000)} minutes</div>}
-                </Button>
-              </Dialog.Trigger>
-              {decryptedFileUrls.length > 0 && (
-              <Dialog.Content maxWidth="450px" key={reloadKey}>
-                <Dialog.Title>View all files for this service</Dialog.Title>
-                  <Flex direction="column" gap="2">
-                    {decryptedFileUrls.map((decryptedFileUrl, index) => (
-                      <div key={index}>
-                        <img
-                          src={decryptedFileUrl}
-                          alt={`Decrypted image ${index + 1}`}
+                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                  <Dialog.Trigger>
+                    <Button onClick={() => onView(feed!.blobIds, feed!.id, Number(feed!.fee), feed!.subscriptionId)}>
+                      {feed!.subscriptionId ? <div>Download And Decrypt All Files</div> : <div>Subscribe for {feed!.fee} MIST for {Math.floor(parseInt(feed!.ttl) / 60 / 1000)} minutes</div>}
+                    </Button>
+                  </Dialog.Trigger>
+                </div>
+                {decryptedFileUrls.length > 0 && (
+                  <Dialog.Content maxWidth="450px" key={reloadKey}>
+                    <Dialog.Title>View all files for this service</Dialog.Title>
+                    <Flex direction="column" gap="2">
+                      {decryptedFileUrls.map((decryptedFileUrl, index) => (
+                        <div key={index}>
+                          <img
+                            src={decryptedFileUrl}
+                            alt={`Decrypted image ${index + 1}`}
                           />
                         </div>
                       ))}
-                  </Flex>
-                <Flex gap="3" mt="4" justify="end">
-                  <Dialog.Close>
-                    <Button variant="soft" color="gray" onClick={() => setDecryptedFileUrls([])}>
-                      Close
-                    </Button>
-                  </Dialog.Close>
-                </Flex>
-                </Dialog.Content>
-              )}
-            </Dialog.Root>
+                    </Flex>
+                    <Flex gap="3" mt="4" justify="end">
+                      <Dialog.Close>
+                        <Button variant="soft" color="gray" onClick={() => setDecryptedFileUrls([])}>
+                          Close
+                        </Button>
+                      </Dialog.Close>
+                    </Flex>
+                  </Dialog.Content>
+                )}
+              </Dialog.Root>
             )}
         </Flex>
       </Card>)}
@@ -326,7 +328,7 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
         <AlertDialog.Content maxWidth="450px">
           <AlertDialog.Title>Error</AlertDialog.Title>
           <AlertDialog.Description size="2">
-            {error}
+           No access to one of more encrypted files.
           </AlertDialog.Description>
 
           <Flex gap="3" mt="4" justify="end">
