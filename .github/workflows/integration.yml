@@ -20,7 +20,7 @@ jobs:
         with:
           repository: MystenLabs/sui-operations
           token: ${{ secrets.SEAL_DEPLOY_DISPATCH_TOKEN }}
-          event-type: build-release-binaries
+          event-type: seal-deploy-ci
           client-payload: '{"seal_key_server_commit": "${{ github.sha }}", "environment": "ci"}'
 
   run-integration-tests:
