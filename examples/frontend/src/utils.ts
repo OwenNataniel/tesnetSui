@@ -20,7 +20,6 @@ export const handleDecryption = async (
         const timeout = setTimeout(() => controller.abort(), 10000); 
         const randomAggregator = aggregators[Math.floor(Math.random() * aggregators.length)];
         const aggregatorUrl = `/${randomAggregator}/v1/blobs/${blobId}`;        
-        console.log(`Downloading blob ${blobId} from ${aggregatorUrl}`);
         const response = await fetch(aggregatorUrl, { signal: controller.signal });
         clearTimeout(timeout);
         if (!response.ok) {
