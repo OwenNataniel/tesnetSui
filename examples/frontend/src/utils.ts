@@ -38,7 +38,7 @@ export const handleDecryption = async (
   console.log(`downloaded ${validDownloads.length} files out of ${blobIds.length}`);
   
   if (validDownloads.length === 0) {
-    const errorMsg = "Cannot retrieve files from Walrus";
+    const errorMsg = "Cannot retrieve files from Walrus aggregator";
     console.error(errorMsg);
     setError(errorMsg);
     return;
