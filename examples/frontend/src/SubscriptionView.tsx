@@ -244,7 +244,7 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
         <h2 style={{ marginBottom: "1rem" }}>Files for subscription service {feed!.name} (ID {getObjectExplorerLink(feed!.id)})</h2>
         <Flex direction="column" gap="2">
             {feed!.blobIds.length === 0 ? (
-              <p>No feeds found.</p>
+              <p>No Files yet.</p>
             ) : (
               <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
