@@ -13,7 +13,7 @@ Seal is a decentralized secrets management (DSM) service that relies on access c
 - **Seamless access:** Applications can interact with Seal backends through software development kits (SDKs).
 
 > [!NOTE]
-> Currently there are two separate Mysten Labs managed tTestnet Seal backends. Users can choose `1-out-of-1`, `1-out-of-2` or `2-out-of-2` backends for threshold encryption. More backends managed by other parties would come online later. If you’re interested in operating one, reach out to the Sui Foundation or Mysten Labs team.
+> Currently there are two separate Mysten Labs managed Testnet Seal backends. Users can choose `1-out-of-1`, `1-out-of-2` or `2-out-of-2` backends for threshold encryption. More backends managed by other parties would come online later. If you’re interested in operating one, reach out to the Sui Foundation or Mysten Labs team.
 
 ### Use cases
 
