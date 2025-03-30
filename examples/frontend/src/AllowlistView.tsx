@@ -104,13 +104,15 @@ const Feeds: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
       handleDecryption(blobIds, currentSessionKey, txBytes, client, setError, setDecryptedFileUrls, setIsDialogOpen, setReloadKey);
       return;
     }
+
+    setCurrentSessionKey(null);
+
 		const sessionKey = new SessionKey({
 			address: suiAddress,
 			packageId,
 			ttlMin: TTL_MIN,
 		});
 
-    setCurrentSessionKey(sessionKey);
     try {
       signPersonalMessage(
         {
@@ -118,8 +120,9 @@ const Feeds: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
         },
         {
           onSuccess: async (result) => {
-            sessionKey.setPersonalMessageSignature(result.signature);
-            handleDecryption(blobIds, sessionKey, txBytes, client, setError, setDecryptedFileUrls, setIsDialogOpen, setReloadKey);
+            await sessionKey.setPersonalMessageSignature(result.signature);
+            await handleDecryption(blobIds, sessionKey, txBytes, client, setError, setDecryptedFileUrls, setIsDialogOpen, setReloadKey);
+            setCurrentSessionKey(sessionKey);
           },
         },
       );
