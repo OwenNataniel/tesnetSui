@@ -11,13 +11,17 @@ export const handleDecryption = async (
   setIsDialogOpen: (open: boolean) => void,
   setReloadKey: (updater: (prev: number) => number) => void,
 ) => {
+  const aggregators = ["aggregator1", "aggregator2", "aggregator3"];
   // First, download all files in parallel (ignore errors)
   const downloadResults = await Promise.all(
     blobIds.map(async (blobId) => {
       try {
         const controller = new AbortController();
-        const timeout = setTimeout(() => controller.abort(), 10000);
-        const response = await fetch(blobId, { signal: controller.signal });
+        const timeout = setTimeout(() => controller.abort(), 10000); 
+        const randomAggregator = aggregators[Math.floor(Math.random() * aggregators.length)];
+        const aggregatorUrl = `/${randomAggregator}/v1/blobs/${blobId}`;        
+        console.log(`Downloading blob ${blobId} from ${aggregatorUrl}`);
+        const response = await fetch(aggregatorUrl, { signal: controller.signal });
         clearTimeout(timeout);
         if (!response.ok) {
           return null;
