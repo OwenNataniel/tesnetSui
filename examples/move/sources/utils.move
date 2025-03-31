@@ -7,7 +7,7 @@ public(package) fun is_prefix(prefix: vector<u8>, word: vector<u8>): bool {
     };
     let mut i = 0;
     while (i < prefix.length()) {
-        if (word[i] != prefix[i]) {
+        if (prefix[i] != word[i]) {
             return false
         };
         i = i + 1;
