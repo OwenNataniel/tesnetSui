@@ -655,11 +655,13 @@ mod tests {
         .unwrap()
         .0;
 
-        let all_usks = services
-            .into_iter()
+        let usks: [_; 3] = services
+            .iter()
             .zip(&keypairs)
-            .map(|(s, kp)| (s, ibe::extract(&kp.0, &full_id)))
-            .collect_vec();
+            .map(|(s, kp)| (*s, ibe::extract(&kp.0, &full_id)))
+            .collect_vec()
+            .try_into()
+            .unwrap();
 
         // Modify the last share
         let encrypted_valid_shares = match encrypted.encrypted_shares.clone() {
@@ -681,28 +683,19 @@ mod tests {
         // Decryption fails with all shares
         assert!(seal_decrypt(
             &encrypted,
-            &IBEUserSecretKeys::BonehFranklinBLS12381(
-                all_usks.iter().map(|(o, k)| (*o, *k)).collect()
-            ),
+            &IBEUserSecretKeys::BonehFranklinBLS12381(HashMap::from(usks)),
             None,
         )
         .is_err_and(|e| e == GeneralError("Invalid MAC".to_string())));
 
-        let mut valid_subset = all_usks.clone();
-        valid_subset.remove(2);
-
-        let keys = IBEUserSecretKeys::BonehFranklinBLS12381(
-            valid_subset.iter().map(|(o, k)| (*o, *k)).collect(),
-        );
+        // Consider only the first two shares
+        let usks = IBEUserSecretKeys::BonehFranklinBLS12381(HashMap::from([usks[0], usks[1]]));
 
         // Decryption with the first two valid shares succeeds.
-        assert_eq!(seal_decrypt(&encrypted, &keys, None,).unwrap(), data);
+        assert_eq!(seal_decrypt(&encrypted, &usks, None,).unwrap(), data);
 
         // But not if we also check the share consistency
-        let public_keys = IBEPublicKeys::BonehFranklinBLS12381(
-            keypairs.into_iter().map(|(_, pk)| pk).collect_vec(),
-        );
-        assert!(seal_decrypt(&encrypted, &keys, Some(&public_keys),)
+        assert!(seal_decrypt(&encrypted, &usks, Some(&public_keys),)
             .is_err_and(|e| e == GeneralError("Inconsistent shares".to_string())));
     }
 }
