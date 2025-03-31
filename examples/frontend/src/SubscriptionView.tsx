@@ -191,8 +191,7 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
         suiClient, 
         client, 
         moveCallConstructor, 
-        setError, 
-        setPartialError,
+        setError,
         setDecryptedFileUrls, 
         setIsDialogOpen, 
         setReloadKey
@@ -222,8 +221,7 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
               suiClient, 
               client, 
               moveCallConstructor, 
-              setError, 
-              setPartialError,
+              setError,
               setDecryptedFileUrls, 
               setIsDialogOpen, 
               setReloadKey
@@ -258,7 +256,7 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
                 </div>
                 {decryptedFileUrls.length > 0 && (
                   <Dialog.Content maxWidth="450px" key={reloadKey}>
-                    <Dialog.Title>View all files for this service</Dialog.Title>
+                    <Dialog.Title>View all files retrieved from Walrus</Dialog.Title>
                     <Flex direction="column" gap="2">
                       {decryptedFileUrls.map((decryptedFileUrl, index) => (
                         <div key={index}>

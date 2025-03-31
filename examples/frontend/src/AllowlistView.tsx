@@ -91,7 +91,7 @@ const Feeds: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
         suiClient, 
         client, 
         moveCallConstructor, 
-        setError, setPartialError, setDecryptedFileUrls, setIsDialogOpen, setReloadKey);
+        setError, setDecryptedFileUrls, setIsDialogOpen, setReloadKey);
       return;
     }
 
@@ -118,7 +118,7 @@ const Feeds: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
               suiClient, 
               client, 
               moveCallConstructor, 
-              setError, setPartialError, setDecryptedFileUrls, setIsDialogOpen, setReloadKey);
+              setError, setDecryptedFileUrls, setIsDialogOpen, setReloadKey);
             setCurrentSessionKey(sessionKey);
           },
         },
@@ -150,7 +150,7 @@ const Feeds: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
                 </Dialog.Trigger>
                 {decryptedFileUrls.length > 0 && (
                   <Dialog.Content maxWidth="450px" key={reloadKey}>
-                  <Dialog.Title>View all files</Dialog.Title>
+                  <Dialog.Title>View all files retrieved from Walrus</Dialog.Title>
                     <Flex direction="column" gap="2">
                     {
                       decryptedFileUrls.map((decryptedFileUrl, index) => (

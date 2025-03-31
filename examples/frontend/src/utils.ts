@@ -12,7 +12,6 @@ export const downloadAndDecrypt = async (
   sealClient: SealClient,
   moveCallConstructor: (tx: Transaction, id: string) => void,
   setError: (error: string | null) => void,
-  setPartialError: (error: string | null) => void,
   setDecryptedFileUrls: (urls: string[]) => void,
   setIsDialogOpen: (open: boolean) => void,
   setReloadKey: (updater: (prev: number) => number) => void,
@@ -44,12 +43,13 @@ export const downloadAndDecrypt = async (
   console.log('validDownloads count', validDownloads.length);
   
   if (validDownloads.length === 0) {
-    const errorMsg ="Cannot retrieve files from this Walrus aggregator, try again (a randomly selected aggregator will be used). Files uploaded more than 1 epoch ago have been deleted from Walrus.";    console.error(errorMsg);
+    const errorMsg ="Cannot retrieve files from this Walrus aggregator, try again (a randomly selected aggregator will be used). Files uploaded more than 1 epoch ago have been deleted from Walrus.";
+    console.error(errorMsg);
     setError(errorMsg);
     return;
   }
 
-  // Fetch keys in batches of 10
+  // Fetch keys in batches of <=10
   for (let i = 0; i < validDownloads.length; i += 10) {
     const batch = validDownloads.slice(i, i + 10);
     const ids = batch.map(enc => EncryptedObject.parse(new Uint8Array(enc)).id);
@@ -57,11 +57,15 @@ export const downloadAndDecrypt = async (
     ids.forEach(id => moveCallConstructor(tx, id));
     const txBytes = await tx.build({ client: suiClient, onlyTransactionKind: true });
     try {      
-      const threshold = 2;
-      await sealClient.fetchKeys({ids, txBytes, sessionKey, threshold});
+      await sealClient.fetchKeys({ids, txBytes, sessionKey, threshold: 2});
     } catch (err) {
-      console.error('Failed to fetch keys for batch:', err);
-      // Continue with decryption anyway, as some keys might already be cached
+      console.log(err);
+      const errorMsg = err instanceof NoAccessError
+        ? "No access to decryption keys"
+        : "Unable to decrypt files, try again";
+      console.error(errorMsg, err);
+      setError(errorMsg);
+      return;
     }
   }
 
