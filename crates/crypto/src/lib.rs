@@ -330,12 +330,7 @@ impl IBEEncryptions {
         let polynomial = interpolate(shares)?;
 
         // Decrypt all shares using the derived key
-        let all_shares = self.decrypt_all_shares(
-            full_id,
-            services,
-            public_keys,
-            &derive_key(KeyPurpose::EncryptedRandomness, base_key),
-        )?;
+        let all_shares = self.decrypt_all_shares(full_id, services, public_keys, base_key)?;
 
         // Check that all shares are points on the reconstructed polynomials
         if all_shares
@@ -353,7 +348,7 @@ impl IBEEncryptions {
         full_id: &[u8],
         services: &[(ObjectID, u8)],
         public_keys: &IBEPublicKeys,
-        key: &[u8; KEY_SIZE],
+        base_key: &[u8; KEY_SIZE],
     ) -> FastCryptoResult<Vec<(u8, [u8; KEY_SIZE])>> {
         match self {
             IBEEncryptions::BonehFranklinBLS12381 {
@@ -362,7 +357,11 @@ impl IBEEncryptions {
                 nonce,
             } => {
                 // Decrypt encrypted nonce,
-                let nonce = ibe::decrypt_and_verify_nonce(encrypted_randomness, key, nonce)?;
+                let nonce = ibe::decrypt_and_verify_nonce(
+                    encrypted_randomness,
+                    &derive_key(KeyPurpose::EncryptedRandomness, base_key),
+                    nonce,
+                )?;
 
                 // Decrypt all shares
                 match public_keys {
