@@ -6,7 +6,7 @@ export default defineConfig({
   server: {
     proxy: {
       '/aggregator1/v1': {
-        target: 'https://walrus-testnet-aggregator.nami.cloud',
+        target: 'https://walrus-testnet-aggregator.trusted-point.com',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/aggregator/, ''),
@@ -24,7 +24,7 @@ export default defineConfig({
         rewrite: (path) => path.replace(/^\/aggregator3/, '')
       },
       '/publisher1/v1': {
-        target: 'https://walrus-testnet-publisher.nami.cloud',
+        target: 'https://walrus-testnet-publisher.trusted-point.com',
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/publisher1/, '')

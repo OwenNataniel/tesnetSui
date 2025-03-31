@@ -16,7 +16,8 @@ export const downloadAndDecrypt = async (
   setIsDialogOpen: (open: boolean) => void,
   setReloadKey: (updater: (prev: number) => number) => void,
 ) => {
-  const aggregators = ["aggregator1", "aggregator2", "aggregator3"];
+  // TODO: add more aggregators
+  const aggregators = ["aggregator2", "aggregator3"];
   // First, download all files in parallel (ignore errors)
   const downloadResults = await Promise.all(
     blobIds.map(async (blobId) => {
