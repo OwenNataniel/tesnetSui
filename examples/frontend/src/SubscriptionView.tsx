@@ -8,7 +8,7 @@ import { coinWithBalance, Transaction } from "@mysten/sui/transactions";
 import { fromHex, SUI_CLOCK_OBJECT_ID } from "@mysten/sui/utils";
 import {SealClient, SessionKey, getAllowlistedKeyServers } from "@mysten/seal";
 import { useParams } from "react-router-dom";
-import { handleDecryption, getObjectExplorerLink, MoveCallConstructor } from "./utils";
+import { downloadAndDecrypt, getObjectExplorerLink, MoveCallConstructor } from "./utils";
 
 const TTL_MIN = 10;
 export interface FeedData {
@@ -33,7 +33,6 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
   const [feed, setFeed] = useState<FeedData>();
   const [decryptedFileUrls, setDecryptedFileUrls] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [partialError, setPartialError] = useState<string | null>(null);
   const packageId = useNetworkVariable("packageId");
   const currentAccount = useCurrentAccount();
   const [currentSessionKey, setCurrentSessionKey] = useState<SessionKey | null>(null);
@@ -124,7 +123,7 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
     setFeed(feed);
   }
 
-  async function constructMoveCall(packageId: string, serviceId: string, subscriptionId: string): Promise<MoveCallConstructor> {
+  function constructMoveCall(packageId: string, serviceId: string, subscriptionId: string): MoveCallConstructor {
     return (tx: Transaction, id: string) => {
       tx.moveCall({
         target: `${packageId}::subscription::seal_approve`,
@@ -185,11 +184,10 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
     }
 
     if (currentSessionKey && !currentSessionKey.isExpired() && currentSessionKey.getAddress() === suiAddress) {
-      const moveCallConstructor = await constructMoveCall(packageId, serviceId, subscriptionId);
-      handleDecryption(
+      const moveCallConstructor = constructMoveCall(packageId, serviceId, subscriptionId);
+      downloadAndDecrypt(
         blobIds, 
         currentSessionKey, 
-        suiAddress, 
         suiClient, 
         client, 
         moveCallConstructor, 
@@ -218,10 +216,9 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
           onSuccess: async (result) => {
             await sessionKey.setPersonalMessageSignature(result.signature);
             const moveCallConstructor = await constructMoveCall(packageId, serviceId, subscriptionId);
-            await handleDecryption(
+            await downloadAndDecrypt(
               blobIds, 
               sessionKey, 
-              suiAddress, 
               suiClient, 
               client, 
               moveCallConstructor, 
@@ -251,8 +248,6 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
             {feed!.blobIds.length === 0 ? (
               <p>No Files yet.</p>
             ) : (
-            <div>
-              <p>{feed!.blobIds.length} file(s) found. </p>
               <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
                 <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
                   <Dialog.Trigger>
@@ -265,7 +260,6 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
                   <Dialog.Content maxWidth="450px" key={reloadKey}>
                     <Dialog.Title>View all files for this service</Dialog.Title>
                     <Flex direction="column" gap="2">
-                      {partialError && <p>{partialError}</p>}
                       {decryptedFileUrls.map((decryptedFileUrl, index) => (
                         <div key={index}>
                           <img
@@ -285,8 +279,7 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
                   </Dialog.Content>
                 )}
               </Dialog.Root>
-            </div>
-          )} 
+            )} 
         </Flex>
       </Card>)}
       <AlertDialog.Root open={!!error} onOpenChange={() => setError(null)}>

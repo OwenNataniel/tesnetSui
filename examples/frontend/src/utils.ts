@@ -2,13 +2,14 @@ import { SealClient, SessionKey, NoAccessError, EncryptedObject } from "@mysten/
 import { SuiClient } from "@mysten/sui/client";
 import { Transaction } from "@mysten/sui/transactions";
 import React from 'react';
+
 export type MoveCallConstructor = (tx: Transaction, id: string) => void;
-export const handleDecryption = async (
+
+export const downloadAndDecrypt = async (
   blobIds: string[],
   sessionKey: SessionKey,
-  suiAddress: string,
   suiClient: SuiClient,
-  client: SealClient,
+  sealClient: SealClient,
   moveCallConstructor: (tx: Transaction, id: string) => void,
   setError: (error: string | null) => void,
   setPartialError: (error: string | null) => void,
@@ -48,24 +49,32 @@ export const handleDecryption = async (
     return;
   }
 
-  // show partial errors if not all files can be loaded
-  if (validDownloads.length < blobIds.length) {
-    const errorMsg = `Showing ${validDownloads.length} files out of ${blobIds.length} files. The rest did not store long enough on Walrus, please upload again.`;
-    setPartialError(errorMsg);
-    return;
+  // Fetch keys in batches of 10
+  for (let i = 0; i < validDownloads.length; i += 10) {
+    const batch = validDownloads.slice(i, i + 10);
+    const ids = batch.map(enc => EncryptedObject.parse(new Uint8Array(enc)).id);
+    const tx = new Transaction();
+    ids.forEach(id => moveCallConstructor(tx, id));
+    const txBytes = await tx.build({ client: suiClient, onlyTransactionKind: true });
+    try {      
+      const threshold = 2;
+      await sealClient.fetchKeys({ids, txBytes, sessionKey, threshold});
+    } catch (err) {
+      console.error('Failed to fetch keys for batch:', err);
+      // Continue with decryption anyway, as some keys might already be cached
+    }
   }
 
-  const decryptedFileUrls: string[] = [];
-
   // Then, decrypt files sequentially
+  const decryptedFileUrls: string[] = [];
   for (const encryptedData of validDownloads) {
     const fullId = EncryptedObject.parse(new Uint8Array(encryptedData)).id;
     const tx = new Transaction();
-    tx.setSender(suiAddress);
     moveCallConstructor(tx, fullId);
     const txBytes = await tx.build({ client: suiClient, onlyTransactionKind: true });
     try {
-      const decryptedFile = await client.decrypt({
+      // Note that all keys are fetched above, so this only local decryption is done
+      const decryptedFile = await sealClient.decrypt({
         data: new Uint8Array(encryptedData),
         sessionKey,
         txBytes,

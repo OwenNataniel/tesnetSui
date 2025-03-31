@@ -9,7 +9,7 @@ import { Transaction } from "@mysten/sui/transactions";
 import { SuiClient } from "@mysten/sui/client";
 import { getAllowlistedKeyServers, SealClient, SessionKey } from "@mysten/seal";
 import { useParams } from "react-router-dom";
-import { handleDecryption, getObjectExplorerLink, MoveCallConstructor } from "./utils";
+import { downloadAndDecrypt, getObjectExplorerLink, MoveCallConstructor } from "./utils";
 
 const TTL_MIN = 10;
 export interface FeedData {
@@ -18,7 +18,7 @@ export interface FeedData {
   blobIds: string[];
 }
 
-async function constructMoveCall(packageId: string, allowlistId: string): Promise<MoveCallConstructor> {
+function constructMoveCall(packageId: string, allowlistId: string): MoveCallConstructor {
   return (tx: Transaction, id: string) => {
     tx.moveCall({
       target: `${packageId}::allowlist::seal_approve`,
@@ -42,7 +42,6 @@ const Feeds: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
   const [feed, setFeed] = useState<FeedData>();
   const [decryptedFileUrls, setDecryptedFileUrls] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
-  const [partialError, setPartialError] = useState<string | null>(null);
   const [currentSessionKey, setCurrentSessionKey] = useState<SessionKey | null>(null);
   const { id } = useParams();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -85,11 +84,10 @@ const Feeds: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
     allowlistId: string,
   ) => {
     if (currentSessionKey && !currentSessionKey.isExpired() && currentSessionKey.getAddress() === suiAddress) {
-      const moveCallConstructor = await constructMoveCall(packageId, allowlistId);
-      handleDecryption(
+      const moveCallConstructor = constructMoveCall(packageId, allowlistId);
+      downloadAndDecrypt(
         blobIds, 
         currentSessionKey, 
-        suiAddress, 
         suiClient, 
         client, 
         moveCallConstructor, 
@@ -114,10 +112,9 @@ const Feeds: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
           onSuccess: async (result) => {
             await sessionKey.setPersonalMessageSignature(result.signature);
             const moveCallConstructor = await constructMoveCall(packageId, allowlistId);
-            await handleDecryption(
+            await downloadAndDecrypt(
               blobIds, 
               sessionKey, 
-              suiAddress, 
               suiClient, 
               client, 
               moveCallConstructor, 
@@ -143,41 +140,39 @@ const Feeds: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
               {feed!.blobIds.length === 0 ? (
                 <p>No files found for this allowlist.</p>
               ) : (
-                <div>
-                  <p>{feed!.blobIds.length} file(s) found. </p>
-                  <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                    <Dialog.Trigger>
-                      <Button onClick={() => onView(feed!.blobIds, feed!.allowlistId)}>
-                        Download And Decrypt All Files
+                <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                <Dialog.Trigger>
+                <Button 
+                    onClick={() => onView(feed!.blobIds, feed!.allowlistId)}
+                  >
+                    Download And Decrypt All Files
+                  </Button>
+                </Dialog.Trigger>
+                {decryptedFileUrls.length > 0 && (
+                  <Dialog.Content maxWidth="450px" key={reloadKey}>
+                  <Dialog.Title>View all files</Dialog.Title>
+                    <Flex direction="column" gap="2">
+                    {
+                      decryptedFileUrls.map((decryptedFileUrl, index) => (
+                        <div key={index}>
+                          <img
+                            src={decryptedFileUrl}
+                            alt={`Decrypted image ${index + 1}`}
+                            />
+                          </div>
+                        ))
+                      }
+                    </Flex>
+                  <Flex gap="3" mt="4" justify="end">
+                    <Dialog.Close>
+                      <Button variant="soft" color="gray" onClick={() => setDecryptedFileUrls([])}>
+                        Close
                       </Button>
-                    </Dialog.Trigger>
-                    {decryptedFileUrls.length > 0 && (
-                      <Dialog.Content maxWidth="450px" key={reloadKey}>
-                      <Dialog.Title>View all files</Dialog.Title>
-                        {partialError && <p>{partialError}</p>}
-                        <Flex direction="column" gap="2">
-                        {
-                          decryptedFileUrls.map((decryptedFileUrl, index) => (
-                            <div key={index}>
-                              <img
-                                src={decryptedFileUrl}
-                                alt={`Decrypted image ${index + 1}`}
-                                />
-                              </div>
-                            ))
-                          }
-                        </Flex>
-                      <Flex gap="3" mt="4" justify="end">
-                        <Dialog.Close>
-                          <Button variant="soft" color="gray" onClick={() => setDecryptedFileUrls([])}>
-                            Close
-                          </Button>
-                        </Dialog.Close>
-                      </Flex>
-                      </Dialog.Content>
-                    )}
-                  </Dialog.Root>
-                </div>
+                    </Dialog.Close>
+                  </Flex>
+                  </Dialog.Content>
+                )}
+              </Dialog.Root>
               )}
             </Flex>
           </Card>
