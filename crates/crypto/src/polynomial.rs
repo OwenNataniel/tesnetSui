@@ -72,6 +72,11 @@ impl Polynomial {
             })
             .sum()
     }
+
+    /// Return the constant term of this polynomial.
+    pub fn constant(&self) -> GF256 {
+        self.0[0]
+    }
 }
 
 impl Add for &Polynomial {

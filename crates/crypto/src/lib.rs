@@ -3,7 +3,7 @@
 
 use crate::dem::Hmac256Ctr;
 use crate::ibe::{decrypt_deterministic, encrypt_batched_deterministic};
-use crate::tss::SecretSharing;
+use crate::tss::{combine, interpolate, SecretSharing};
 use dem::Aes256Gcm;
 use fastcrypto::error::FastCryptoError::{GeneralError, InvalidInput};
 use fastcrypto::error::FastCryptoResult;
@@ -16,7 +16,7 @@ use serde_with::serde_as;
 use std::collections::HashMap;
 pub use sui_types::base_types::ObjectID;
 use sui_types::crypto::ToFromBytes;
-use tss::{combine, split};
+use tss::split;
 use utils::generate_random_bytes;
 
 pub mod dem;
@@ -265,26 +265,14 @@ pub fn seal_decrypt(
     // Create the base key from the shares and decrypt
     let base_key = combine(&shares)?;
 
-    // If desired, after we have the encryption key, we can decrypt all shares and check for consistency
     if let Some(public_keys) = public_keys {
-        let all_shares = encrypted_shares.decrypt_all_shares(
+        encrypted_shares.check_share_consistency(
+            &shares,
             &full_id,
             services,
             public_keys,
-            &derive_key(KeyPurpose::EncryptedRandomness, &base_key),
+            &base_key,
         )?;
-
-        let reconstructed_base_key = combine(
-            &services
-                .iter()
-                .zip(all_shares)
-                .map(|((_, i), share)| (*i, share))
-                .collect_vec(),
-        )?;
-        if reconstructed_base_key != base_key {
-            return Err(GeneralError("Invalid secret sharing given".to_string()));
-        }
-        // TODO: The above is just a sanity check. We need to check that the interpolated polynomial from the given shares has the remaining shares as points. The current check just checks that the constant term is the same. But that doesn't rule out that another subset of the shares would've given a different secret.
     }
 
     let dem_key = derive_key(KeyPurpose::DEM, &base_key);
@@ -328,14 +316,45 @@ fn derive_key(purpose: KeyPurpose, derived_key: &[u8; KEY_SIZE]) -> [u8; KEY_SIZ
 }
 
 impl IBEEncryptions {
+    /// Given shares and the base key, check that the shares are consistent,
+    /// e.g., check that all subsets of shares would reconstruct the same polynomial.
+    fn check_share_consistency(
+        &self,
+        shares: &[(u8, [u8; KEY_SIZE])],
+        full_id: &[u8],
+        services: &[(ObjectID, u8)],
+        public_keys: &IBEPublicKeys,
+        base_key: &[u8; KEY_SIZE],
+    ) -> FastCryptoResult<()> {
+        // Compute the entire polynomial from the given shares. Note that polynomial(0) = base_key.
+        let polynomial = interpolate(shares)?;
+
+        // Decrypt all shares using the derived key
+        let all_shares = self.decrypt_all_shares(
+            full_id,
+            services,
+            public_keys,
+            &derive_key(KeyPurpose::EncryptedRandomness, base_key),
+        )?;
+
+        // Check that all shares are points on the reconstructed polynomials
+        if all_shares
+            .into_iter()
+            .any(|(i, share)| polynomial(i) != share)
+        {
+            return Err(GeneralError("Inconsistent shares".to_string()));
+        }
+        Ok(())
+    }
+
     /// Given the derived key, decrypt all shares
     fn decrypt_all_shares(
         &self,
-        id: &[u8],
+        full_id: &[u8],
         services: &[(ObjectID, u8)],
         public_keys: &IBEPublicKeys,
         key: &[u8; KEY_SIZE],
-    ) -> FastCryptoResult<Vec<[u8; KEY_SIZE]>> {
+    ) -> FastCryptoResult<Vec<(u8, [u8; KEY_SIZE])>> {
         match self {
             IBEEncryptions::BonehFranklinBLS12381 {
                 encrypted_randomness,
@@ -351,7 +370,12 @@ impl IBEEncryptions {
                         .iter()
                         .zip(encrypted_shares)
                         .zip(services)
-                        .map(|((pk, s), service)| decrypt_deterministic(&nonce, s, pk, id, service))
+                        .map(|((pk, s), service)| {
+                            decrypt_deterministic(&nonce, s, pk, full_id, service).map(|share| {
+                                let index = service.1;
+                                (index, share)
+                            })
+                        })
                         .collect::<FastCryptoResult<Vec<_>>>(),
                 }
             }
