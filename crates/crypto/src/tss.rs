@@ -320,7 +320,6 @@ mod tests {
             .map(|bytes| (bytes[N], bytes[..N].try_into().unwrap()))
             .collect::<Vec<_>>();
         assert_eq!(combine(&shares[..2]).unwrap(), expected);
-
         assert_eq!(combine(&shares[1..3]).unwrap(), expected);
         assert_eq!(combine(&shares).unwrap(), expected);
 

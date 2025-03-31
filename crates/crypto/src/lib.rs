@@ -365,17 +365,20 @@ impl IBEEncryptions {
 
                 // Decrypt all shares
                 match public_keys {
-                    IBEPublicKeys::BonehFranklinBLS12381(public_keys) => public_keys
-                        .iter()
-                        .zip(encrypted_shares)
-                        .zip(services)
-                        .map(|((pk, s), service)| {
-                            decrypt_deterministic(&nonce, s, pk, full_id, service).map(|share| {
-                                let index = service.1;
-                                (index, share)
+                    IBEPublicKeys::BonehFranklinBLS12381(public_keys) => {
+                        if public_keys.len() != encrypted_shares.len() {
+                            return Err(InvalidInput);
+                        }
+                        public_keys
+                            .iter()
+                            .zip(encrypted_shares)
+                            .zip(services)
+                            .map(|((pk, s), service)| {
+                                decrypt_deterministic(&nonce, s, pk, full_id, service)
+                                    .map(|s| (service.1, s))
                             })
-                        })
-                        .collect::<FastCryptoResult<Vec<_>>>(),
+                            .collect::<FastCryptoResult<_>>()
+                    }
                 }
             }
         }
@@ -617,5 +620,89 @@ mod tests {
         .unwrap();
 
         assert_eq!(decrypted, b"My super secret message");
+    }
+
+    #[test]
+    fn test_share_consistency() {
+        let data = b"Hello, World!";
+        let package_id = ObjectID::random();
+        let id = vec![1, 2, 3, 4];
+
+        let full_id = create_full_id(&package_id, &id);
+
+        let mut rng = rand::thread_rng();
+        let keypairs = (0..3)
+            .map(|_| ibe::generate_key_pair(&mut rng))
+            .collect_vec();
+
+        let services = keypairs.iter().map(|_| ObjectID::random()).collect_vec();
+
+        let threshold = 2;
+        let public_keys =
+            IBEPublicKeys::BonehFranklinBLS12381(keypairs.iter().map(|(_, pk)| *pk).collect_vec());
+
+        let mut encrypted = seal_encrypt(
+            package_id,
+            id.clone(),
+            services.clone(),
+            &public_keys,
+            threshold,
+            EncryptionInput::Hmac256Ctr {
+                data: data.to_vec(),
+                aad: Some(b"something".to_vec()),
+            },
+        )
+        .unwrap()
+        .0;
+
+        let all_usks = services
+            .into_iter()
+            .zip(&keypairs)
+            .map(|(s, kp)| (s, ibe::extract(&kp.0, &full_id)))
+            .collect_vec();
+
+        // Modify the last share
+        let encrypted_valid_shares = match encrypted.encrypted_shares.clone() {
+            IBEEncryptions::BonehFranklinBLS12381 {
+                nonce,
+                mut encrypted_shares,
+                encrypted_randomness,
+            } => {
+                encrypted_shares[2][0] = encrypted_shares[2][0].wrapping_add(1);
+                IBEEncryptions::BonehFranklinBLS12381 {
+                    nonce,
+                    encrypted_shares,
+                    encrypted_randomness,
+                }
+            }
+        };
+        encrypted.encrypted_shares = encrypted_valid_shares;
+
+        // Decryption fails with all shares
+        assert!(seal_decrypt(
+            &encrypted,
+            &IBEUserSecretKeys::BonehFranklinBLS12381(
+                all_usks.iter().map(|(o, k)| (*o, *k)).collect()
+            ),
+            None,
+        )
+        .is_err_and(|e| e == GeneralError("Invalid MAC".to_string())));
+
+        let mut valid_subset = all_usks.clone();
+        valid_subset.remove(2);
+
+        let keys = IBEUserSecretKeys::BonehFranklinBLS12381(
+            valid_subset.iter().map(|(o, k)| (*o, *k)).collect(),
+        );
+
+        // Decryption with the first two valid shares succeeds.
+        assert_eq!(seal_decrypt(&encrypted, &keys, None,).unwrap(), data);
+
+        // But not if we also check the share consistency
+        let public_keys = IBEPublicKeys::BonehFranklinBLS12381(
+            keypairs.into_iter().map(|(_, pk)| pk).collect_vec(),
+        );
+        assert!(seal_decrypt(&encrypted, &keys, Some(&public_keys),)
+            .is_err_and(|e| e == GeneralError("Inconsistent shares".to_string())));
     }
 }
