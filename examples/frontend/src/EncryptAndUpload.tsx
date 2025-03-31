@@ -54,7 +54,7 @@ export function WalrusUpload({ policyObject, cap_id, moduleName }: WalrusUploadP
   const services: WalrusService[] = [
     { 
       id: "service1", 
-      name: "walrus.space", 
+      name: "nami.cloud", 
       publisherUrl: "/publisher1",
       aggregatorUrl: "/aggregator1"
     },

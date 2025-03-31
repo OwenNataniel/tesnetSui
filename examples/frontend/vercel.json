@@ -14,7 +14,7 @@
       },
       {
         "source": "/publisher1/:path*",
-        "destination": "https://walrus-testnet-publisher.nodes.guru/:path*"
+        "destination": "https://walrus-testnet-publisher.nami.cloud/:path*"
       },
       {
         "source": "/publisher2/:path*",
