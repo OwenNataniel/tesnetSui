@@ -262,9 +262,10 @@ pub fn seal_decrypt(
         }
     };
 
-    // Create the base key from the shares and decrypt
+    // Create the base key from the shares
     let base_key = combine(&shares)?;
 
+    // If the public keys are given, we can decrypt all shares and check for consistency
     if let Some(public_keys) = public_keys {
         encrypted_shares.check_share_consistency(
             &shares,
@@ -275,6 +276,7 @@ pub fn seal_decrypt(
         )?;
     }
 
+    // Derive symmetric key and decrypt the ciphertext
     let dem_key = derive_key(KeyPurpose::DEM, &base_key);
     match ciphertext {
         Ciphertext::Aes256Gcm { blob, aad } => {
