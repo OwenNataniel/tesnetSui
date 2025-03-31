@@ -88,7 +88,7 @@ const client = new SealClient({
 Next, the app can call `encrypt` of `client` with the threshold, package id of the deployed contract with the `seal_approve*` functions,
 the id that corresponds to the policy, and the data to be encrypted.
 This function returns the encrypted object and the symmetric key used for encryption (i.e., the key of the DEM component of the KEM/DEM encryption).
-The latter can be ignored, or returned to the user as a backup for disaster recovery.
+The latter can be ignored, or returned to the user as a backup for disaster recovery. Decryption given the backup key can be done using the CLI using the `symmetric-decrypt` function as in the CLI example below.
 
 ```typescript
 const { encryptedObject: encryptedBytes, key: backupKey } = await client.encrypt({
