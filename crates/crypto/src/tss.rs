@@ -67,7 +67,7 @@ pub fn split<R: AllowedRng, const N: usize>(
 /// If the indices of the shares are not unique or the set is empty, an [InvalidInput] will be returned.
 pub fn interpolate<const N: usize>(
     shares: &[(u8, [u8; N])],
-) -> FastCryptoResult<impl Fn(u8) -> [u8; 32]> {
+) -> FastCryptoResult<impl Fn(u8) -> [u8; N]> {
     if shares.is_empty()
         || shares.iter().any(|(i, _)| *i == 0)
         || !shares.iter().map(|(i, _)| i).all_unique()
@@ -87,13 +87,12 @@ pub fn interpolate<const N: usize>(
         .collect();
 
     Ok(move |x: u8| {
-        let x = GF256(x);
         polynomials
             .iter()
-            .map(|p| p.evaluate(&x).into())
+            .map(|p| p.evaluate(&GF256(x)).into())
             .collect_vec()
             .try_into()
-            .unwrap()
+            .expect("Fixed length")
     })
 }
 
