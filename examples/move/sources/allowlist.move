@@ -7,6 +7,7 @@ module walrus::allowlist;
 
 use std::string::String;
 use sui::dynamic_field as df;
+use walrus::utils::is_prefix;
 
 const EInvalidCap: u64 = 0;
 const ENoAccess: u64 = 1;
@@ -116,19 +117,4 @@ public fun destroy_for_testing(allowlist: Allowlist, cap: Cap) {
     object::delete(id);
     let Cap { id, .. } = cap;
     object::delete(id);
-}
-
-/// Returns true if `prefix` is a prefix of `word`.
-fun is_prefix(prefix: vector<u8>, word: vector<u8>): bool {
-    if (prefix.length() > word.length()) {
-        return false
-    };
-    let mut i = 0;
-    while (i < prefix.length()) {
-        if (word[i] != prefix[i]) {
-            return false
-        };
-        i = i + 1;
-    };
-    true
 }
