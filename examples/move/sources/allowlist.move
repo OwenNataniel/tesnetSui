@@ -5,12 +5,12 @@
 
 module walrus::allowlist;
 
-use sui::dynamic_field as df;
 use std::string::String;
+use sui::dynamic_field as df;
 
-const EInvalidCap : u64 = 0;
-const ENoAccess : u64 = 1;
-const EDuplicate : u64 = 2;
+const EInvalidCap: u64 = 0;
+const ENoAccess: u64 = 1;
+const EDuplicate: u64 = 2;
 const MARKER: u64 = 3;
 
 public struct Allowlist has key {
@@ -73,15 +73,8 @@ public fun namespace(allowlist: &Allowlist): vector<u8> {
 fun approve_internal(caller: address, id: vector<u8>, allowlist: &Allowlist): bool {
     // Check if the id has the right prefix
     let namespace = namespace(allowlist);
-    let mut i = 0;
-    if (namespace.length() > id.length()) {
+    if (!is_prefix(namespace, id)) {
         return false
-    };
-    while (i < namespace.length()) {
-        if (namespace[i] != id[i]) {
-            return false
-        };
-        i = i + 1;
     };
 
     // Check if user is in the allowlist
@@ -123,4 +116,19 @@ public fun destroy_for_testing(allowlist: Allowlist, cap: Cap) {
     object::delete(id);
     let Cap { id, .. } = cap;
     object::delete(id);
+}
+
+/// Returns true if `prefix` is a prefix of `word`.
+fun is_prefix(prefix: vector<u8>, word: vector<u8>): bool {
+    if (prefix.length() > word.length()) {
+        return false
+    };
+    let mut i = 0;
+    while (i < prefix.length()) {
+        if (word[i] != prefix[i]) {
+            return false
+        };
+        i = i + 1;
+    };
+    true
 }
