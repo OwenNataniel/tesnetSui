@@ -181,6 +181,7 @@ export function WalrusUpload({ policyObject, cap_id, moduleName }: WalrusUploadP
         });
       } else {
         alert('Error publishing the blob on Walrus, please try again with a different service.');
+        throw new Error('Something went wrong when storing the blob!');
       }
     });
   };
