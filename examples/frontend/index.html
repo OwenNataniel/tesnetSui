@@ -1,19 +1,26 @@
 <!doctype html>
-<html lang="en" class="dark-theme" style="color-scheme: dark">
+<html lang="en" class="blockchain-theme" style="color-scheme: dark">
   <head>
     <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/vite.svg" />
+    <link rel="icon" type="image/svg+xml" href="/blockchain-icon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Seal Example Apps</title>
+    <title>Seal Blockchain Suite</title>
 
     <style>
-      /*
-  Josh's Custom CSS Reset
-  https://www.joshwcomeau.com/css/custom-css-reset/
-*/
-      *,
-      *::before,
-      *::after {
+      /* ===== Blockchain Professional Theme ===== */
+      :root {
+        --bg-primary: #0a0b0d;
+        --bg-secondary: #131519;
+        --accent-primary: #3a86ff;  /* Crypto blue */
+        --accent-secondary: #00d395; /* Crypto green */
+        --text-primary: #e2e8f0;
+        --text-secondary: #94a3b8;
+        --border-radius: 8px;
+        --border-glow: 0 0 8px rgba(58, 134, 255, 0.4);
+      }
+
+      /* Josh's Custom CSS Reset (modified) */
+      *, *::before, *::after {
         box-sizing: border-box;
       }
       * {
@@ -22,35 +29,84 @@
       body {
         line-height: 1.5;
         -webkit-font-smoothing: antialiased;
+        background: var(--bg-primary);
+        color: var(--text-primary);
+        font-family: 'Inter', 'Segoe UI', system-ui, sans-serif;
+        background-image: 
+          radial-gradient(circle at 25% 25%, rgba(58, 134, 255, 0.1) 0%, transparent 50%),
+          radial-gradient(circle at 75% 75%, rgba(0, 211, 149, 0.1) 0%, transparent 50%);
       }
-      img,
-      picture,
-      video,
-      canvas,
-      svg {
+      img, picture, video, canvas, svg {
         display: block;
         max-width: 100%;
       }
-      input,
-      button,
-      textarea,
-      select {
+      input, button, textarea, select {
         font: inherit;
+        background: var(--bg-secondary);
+        color: var(--text-primary);
+        border-radius: var(--border-radius);
       }
-      p,
-      h1,
-      h2,
-      h3,
-      h4,
-      h5,
-      h6 {
+      p, h1, h2, h3, h4, h5, h6 {
         overflow-wrap: break-word;
+        font-weight: 500;
       }
-      #root,
-      #__next {
+      h1, h2, h3 {
+        background: linear-gradient(90deg, var(--accent-primary), var(--accent-secondary));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      #root, #__next {
         isolation: isolate;
+        min-height: 100vh;
+      }
+
+      /* Blockchain UI Elements */
+      .blockchain-card {
+        background: var(--bg-secondary);
+        border: 1px solid rgba(58, 134, 255, 0.2);
+        border-radius: var(--border-radius);
+        box-shadow: var(--border-glow);
+        transition: transform 0.2s, box-shadow 0.2s;
+      }
+      .blockchain-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 0 15px rgba(58, 134, 255, 0.3);
+      }
+
+      /* Crypto Typography */
+      .monospace {
+        font-family: 'Roboto Mono', monospace;
+        color: var(--accent-secondary);
+      }
+
+      /* Animated Gradient Border */
+      .gradient-border {
+        position: relative;
+      }
+      .gradient-border::before {
+        content: '';
+        position: absolute;
+        inset: 0;
+        border-radius: var(--border-radius);
+        padding: 2px;
+        background: linear-gradient(45deg, var(--accent-primary), var(--accent-secondary));
+        -webkit-mask: 
+          linear-gradient(#fff 0 0) content-box, 
+          linear-gradient(#fff 0 0);
+        mask: 
+          linear-gradient(#fff 0 0) content-box, 
+          linear-gradient(#fff 0 0);
+        -webkit-mask-composite: xor;
+        mask-composite: exclude;
+        pointer-events: none;
       }
     </style>
+    
+    <!-- Inter & Roboto Mono Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Roboto+Mono&display=swap" rel="stylesheet">
   </head>
   <body>
     <div id="root"></div>
