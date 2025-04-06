@@ -6,12 +6,6 @@ This directory contains example programs demonstrating how to use the Seal crypt
 
 1. **Basic Example** ([basic_example.rs](./basic_example.rs)) - Demonstrates basic hashing and key generation.
 
-## How to Run Examples
-
-To run an example, use the following command:
-
-```bash
-cargo run --example basic_example
 
 # Examples
 
@@ -45,3 +39,9 @@ cd frontend
 pnpm install
 pnpm dev
 ```
+## How to Run Examples
+
+To run an example, use the following command:
+
+```bash
+cargo run --example basic_example
