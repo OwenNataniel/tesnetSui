@@ -1,3 +1,18 @@
+# Seal Examples
+
+This directory contains example programs demonstrating how to use the Seal cryptographic library.
+
+## Available Examples
+
+1. **Basic Example** ([basic_example.rs](./basic_example.rs)) - Demonstrates basic hashing and key generation.
+
+## How to Run Examples
+
+To run an example, use the following command:
+
+```bash
+cargo run --example basic_example
+
 # Examples
 
 This reference application includes two different functionalities to showcase Seal's capabilities:
