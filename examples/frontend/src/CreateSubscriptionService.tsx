@@ -28,10 +28,22 @@ export function CreateService() {
   });
 
   function createService(price: number, ttl: number, name: string) {
-    if (price === 0 || ttl === 0 || name === '') {
-      alert('Please fill in all fields');
+    if (price === 0) {
+      alert('Price must be 1 or greater than 1 ');
       return;
     }
+    
+    if (ttl === 0) {
+      alert('Subscription duration must be 1 or greater than 1');
+      return;
+    }
+    
+    if (name === '') {
+      alert('Service name cannot be empty');
+      return;
+    }
+
+
     const ttlMs = ttl * 60 * 1000;
     const tx = new Transaction();
     tx.moveCall({
