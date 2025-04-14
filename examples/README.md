@@ -30,3 +30,6 @@ cd frontend
 pnpm install
 pnpm dev
 ```
+
+# Troubleshooting Walrus Upload/Download Issues
+If you encounter Walrus upload/download issues, you can start a local Walrus node. Refer to this article [Walrus Testnet Node Setup Guide](./run-local-walrus-node.md)

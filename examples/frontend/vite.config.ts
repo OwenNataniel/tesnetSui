@@ -41,6 +41,12 @@ export default defineConfig({
         secure: false,
         rewrite: (path) => path.replace(/^\/aggregator6/, ''),
       },
+      '/aggregator7/v1': {
+        target: 'http://localhost:31416',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/aggregator7/, ''),
+      },
       '/publisher1/v1': {
         target: 'https://publisher.walrus-testnet.walrus.space',
         changeOrigin: true,
@@ -76,6 +82,12 @@ export default defineConfig({
         changeOrigin: true,
         secure: false,
         rewrite: (path) => path.replace(/^\/publisher6/, ''),
+      },
+      '/publisher7/v1': {
+        target: 'http://localhost:31416',
+        changeOrigin: true,
+        secure: false,
+        rewrite: (path) => path.replace(/^\/publisher7/, ''),
       },
     },
   },
