@@ -88,6 +88,12 @@ export function WalrusUpload({ policyObject, cap_id, moduleName }: WalrusUploadP
       publisherUrl: '/publisher6',
       aggregatorUrl: '/aggregator6',
     },
+    {
+      id: 'service7',
+      name: 'localhost',
+      publisherUrl: '/publisher7',
+      aggregatorUrl: '/aggregator7',
+    },
   ];
 
   function getAggregatorUrl(path: string): string {

@@ -25,6 +25,10 @@
       "destination": "https://walrus-testnet-aggregator.everstake.one/:path*"
     },
     {
+      "source": "/aggregator7/:path*",
+      "destination": "http://localhost:31416/:path*"
+    },
+    {
       "source": "/publisher1/:path*",
       "destination": "https://publisher.walrus-testnet.walrus.space/:path*"
     },
@@ -47,6 +51,10 @@
     {
       "source": "/publisher6/:path*",
       "destination": "https://walrus-testnet-publisher.everstake.one/:path*"
+    },
+    {
+      "source": "/publisher7/:path*",
+      "destination": "http://localhost:31416/:path*"
     },
     {
       "source": "/(.*)",
