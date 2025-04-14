@@ -1,4 +1,4 @@
-# Examples
+stephanie# Examples
 
 This reference application includes two different functionalities to showcase Seal's capabilities:
 
