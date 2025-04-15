@@ -25,25 +25,27 @@ export function CreateAllowlist() {
       }),
   });
 
-  function createAllowlist(name: string) {
-    if (name === '') {
-      alert('Please enter a name for the allowlist');
-      return;
-    }
-    const tx = new Transaction();
-    tx.moveCall({
-      target: `${packageId}::allowlist::create_allowlist_entry`,
-      arguments: [tx.pure.string(name)],
-    });
-    tx.setGasBudget(10000000);
-    signAndExecute(
+  async function createAllowlist(name: string) {
+  if (name === '') {
+    alert('Please enter a name for the allowlist');
+    return;
+  }
+  
+  const tx = new Transaction();
+  tx.moveCall({
+    target: `${packageId}::allowlist::create_allowlist_entry`,
+    arguments: [tx.pure.string(name)],
+  });
+  tx.setGasBudget(10000000);
+
+  try {
+    await signAndExecute(
       {
         transaction: tx,
       },
       {
         onSuccess: async (result) => {
           console.log('res', result);
-          // Extract the created allowlist object ID from the transaction result
           const allowlistObject = result.effects?.created?.find(
             (item) => item.owner && typeof item.owner === 'object' && 'Shared' in item.owner,
           );
@@ -57,7 +59,11 @@ export function CreateAllowlist() {
         },
       },
     );
+  } catch (error) {
+    console.error("Tx failed:", error);
+    alert(`Failed: ${error.message}`);
   }
+}
 
   const handleViewAll = () => {
     navigate(`/allowlist-example/admin/allowlists`);
