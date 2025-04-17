@@ -65,7 +65,7 @@ impl Metrics {
             checkpoint_timestamp_delay: register_histogram_with_registry!(
                 "checkpoint_timestamp_delay",
                 "Delay of timestamp of the latest checkpoint",
-                default_external_call_duration_buckets(),
+                default_checkpoint_staleness_buckets(),
                 registry
             )
             .unwrap(),
@@ -168,4 +168,8 @@ fn default_external_call_duration_buckets() -> Vec<f64> {
 
 fn default_fast_call_duration_buckets() -> Vec<f64> {
     buckets(10.0, 100.0, 10.0)
+}
+
+fn default_checkpoint_staleness_buckets() -> Vec<f64> {
+    buckets(0.0, 10000.0, 50.0)
 }
