@@ -38,6 +38,7 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
   const [feed, setFeed] = useState<FeedData>();
   const [decryptedFileUrls, setDecryptedFileUrls] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [partialError, setPartialError] = useState<string | null>(null);
   const packageId = useNetworkVariable('packageId');
   const currentAccount = useCurrentAccount();
   const [currentSessionKey, setCurrentSessionKey] = useState<SessionKey | null>(null);
@@ -59,34 +60,34 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
   });
 
   useEffect(() => {
-    // Call getFeed immediately
+    // Memanggil getFeed segera
     getFeed();
 
-    // Set up interval to call getFeed every 3 seconds
+    // Menyiapkan interval untuk memanggil getFeed setiap 3 detik
     const intervalId = setInterval(() => {
       getFeed();
     }, 3000);
 
-    // Cleanup interval on component unmount
+    // Membersihkan interval saat komponen di-unmount
     return () => clearInterval(intervalId);
   }, [id, suiAddress, packageId, suiClient]);
 
   async function getFeed() {
-    // get all encrypted objects for the given service id
+    // Mendapatkan semua objek terenkripsi untuk ID layanan yang diberikan
     const encryptedObjects = await suiClient
       .getDynamicFields({
         parentId: id!,
       })
       .then((res) => res.data.map((obj) => obj.name.value as string));
 
-    // get the current service object
+    // Mendapatkan objek layanan saat ini
     const service = await suiClient.getObject({
       id: id!,
       options: { showContent: true },
     });
     const service_fields = (service.data?.content as { fields: any })?.fields || {};
 
-    // get all subscriptions for the given sui address
+    // Mendapatkan semua langganan untuk alamat sui yang diberikan
     const res = await suiClient.getOwnedObjects({
       owner: suiAddress,
       options: {
@@ -98,7 +99,7 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
       },
     });
 
-    // get the current timestamp
+    // Mendapatkan timestamp saat ini
     const clock = await suiClient.getObject({
       id: '0x6',
       options: { showContent: true },
@@ -106,7 +107,7 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
     const fields = (clock.data?.content as { fields: any })?.fields || {};
     const current_ms = fields.timestamp_ms;
 
-    // find an expired subscription for the given service if exists.
+    // Menemukan langganan yang kedaluwarsa untuk layanan yang diberikan jika ada
     const valid_subscription = res.data
       .map((obj) => {
         const fields = (obj!.data!.content as { fields: any }).fields;
@@ -255,72 +256,76 @@ const FeedsToSubscribe: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
   return (
     <Card>
       {feed === undefined ? (
-        <p>Waiting for files...</p>
+        <p>Menunggu file...</p>
       ) : (
         <Card key={feed!.id}>
           <h2 style={{ marginBottom: '1rem' }}>
-            Files for subscription service {feed!.name} (ID {getObjectExplorerLink(feed!.id)})
+            File untuk layanan langganan {feed!.name} (ID {getObjectExplorerLink(feed!.id)})
           </h2>
           <Flex direction="column" gap="2">
             {feed!.blobIds.length === 0 ? (
-              <p>No Files yet.</p>
+              <p>Tidak ada file.</p>
             ) : (
-              <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-                <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
-                  <Dialog.Trigger>
-                    <Button
-                      onClick={() =>
-                        onView(feed!.blobIds, feed!.id, Number(feed!.fee), feed!.subscriptionId)
-                      }
-                    >
-                      {feed!.subscriptionId ? (
-                        <div>Download And Decrypt All Files</div>
-                      ) : (
-                        <div>
-                          Subscribe for {feed!.fee} MIST for{' '}
-                          {Math.floor(parseInt(feed!.ttl) / 60 / 1000)} minutes
-                        </div>
-                      )}
-                    </Button>
-                  </Dialog.Trigger>
-                </div>
-                {decryptedFileUrls.length > 0 && (
-                  <Dialog.Content maxWidth="450px" key={reloadKey}>
-                    <Dialog.Title>View all files retrieved from Walrus</Dialog.Title>
-                    <Flex direction="column" gap="2">
-                      {decryptedFileUrls.map((decryptedFileUrl, index) => (
-                        <div key={index}>
-                          <img src={decryptedFileUrl} alt={`Decrypted image ${index + 1}`} />
-                        </div>
-                      ))}
-                    </Flex>
-                    <Flex gap="3" mt="4" justify="end">
-                      <Dialog.Close>
-                        <Button
-                          variant="soft"
-                          color="gray"
-                          onClick={() => setDecryptedFileUrls([])}
-                        >
-                          Close
-                        </Button>
-                      </Dialog.Close>
-                    </Flex>
-                  </Dialog.Content>
-                )}
-              </Dialog.Root>
+              <div>
+                <p>{feed!.blobIds.length} file ditemukan. </p>
+                <Dialog.Root open={isDialogOpen} onOpenChange={setIsDialogOpen}>
+                  <div style={{ display: 'flex', justifyContent: 'flex-start' }}>
+                    <Dialog.Trigger>
+                      <Button
+                        onClick={() =>
+                          onView(feed!.blobIds, feed!.id, Number(feed!.fee), feed!.subscriptionId)
+                        }
+                      >
+                        {feed!.subscriptionId ? (
+                          <div>Unduh dan Dekripsi Semua File</div>
+                        ) : (
+                          <div>
+                            Berlangganan untuk {feed!.fee} MIST selama{' '}
+                            {Math.floor(parseInt(feed!.ttl) / 60 / 1000)} menit
+                          </div>
+                        )}
+                      </Button>
+                    </Dialog.Trigger>
+                  </div>
+                  {decryptedFileUrls.length > 0 && (
+                    <Dialog.Content maxWidth="450px" key={reloadKey}>
+                      <Dialog.Title>Melihat semua file yang diambil dari Walrus</Dialog.Title>
+                      <Flex direction="column" gap="2">
+                        {partialError && <p>{partialError}</p>}
+                        {decryptedFileUrls.map((decryptedFileUrl, index) => (
+                          <div key={index}>
+                            <img src={decryptedFileUrl} alt={`Gambar terdekripsi ${index + 1}`} />
+                          </div>
+                        ))}
+                      </Flex>
+                      <Flex gap="3" mt="4" justify="end">
+                        <Dialog.Close>
+                          <Button
+                            variant="soft"
+                            color="gray"
+                            onClick={() => setDecryptedFileUrls([])}
+                          >
+                            Tutup
+                          </Button>
+                        </Dialog.Close>
+                      </Flex>
+                    </Dialog.Content>
+                  )}
+                </Dialog.Root>
+              </div>
             )}
           </Flex>
         </Card>
       )}
       <AlertDialog.Root open={!!error} onOpenChange={() => setError(null)}>
         <AlertDialog.Content maxWidth="450px">
-          <AlertDialog.Title>Error</AlertDialog.Title>
+          <AlertDialog.Title>Kesalahan</AlertDialog.Title>
           <AlertDialog.Description size="2">{error}</AlertDialog.Description>
 
           <Flex gap="3" mt="4" justify="end">
             <AlertDialog.Action>
               <Button variant="solid" color="gray" onClick={() => setError(null)}>
-                Close
+                Tutup
               </Button>
             </AlertDialog.Action>
           </Flex>

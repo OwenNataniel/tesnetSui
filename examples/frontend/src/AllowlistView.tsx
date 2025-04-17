@@ -39,6 +39,7 @@ const Feeds: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
   const [feed, setFeed] = useState<FeedData>();
   const [decryptedFileUrls, setDecryptedFileUrls] = useState<string[]>([]);
   const [error, setError] = useState<string | null>(null);
+  const [partialError, setPartialError] = useState<string | null>(null);
   const [currentSessionKey, setCurrentSessionKey] = useState<SessionKey | null>(null);
   const { id } = useParams();
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -115,7 +116,7 @@ const Feeds: React.FC<{ suiAddress: string }> = ({ suiAddress }) => {
         {
           onSuccess: async (result) => {
             await sessionKey.setPersonalMessageSignature(result.signature);
-            const moveCallConstructor = await constructMoveCall(packageId, allowlistId);
+            const moveCallConstructor = constructMoveCall(packageId, allowlistId);
             await downloadAndDecrypt(
               blobIds,
               sessionKey,
